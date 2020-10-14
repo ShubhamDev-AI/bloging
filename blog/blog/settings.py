@@ -12,8 +12,8 @@ SECRET_KEY = 'o93kx)6&6uc1_lh$9q73mru)qkyc7z62qrss@dzv9f_gomxz4v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['mysite.com', 'localhost', '127.0.0.1']
+SITE_ID=1
 
 # Application definition
 
@@ -24,6 +24,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # apps
+    'account.apps.AccountConfig',
+    'posts.apps.PostsConfig',
+    # third party app
+    'taggit',
+    'social_django',
+    'django_extensions',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
+    'django.contrib.postgres',
+    'easy_thumbnails',
+    'ckeditor',
+    'widget_tweaks',
+    'bootstrap4',
+    'mptt',
 ]
 
 MIDDLEWARE = [
@@ -114,3 +129,30 @@ STATICFILES_DIRS = [
 ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'blog')
+
+
+# E-mail
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'shubhamzade10055@gmail.com'
+EMAIL_HOST_PASSWORD = 'Shubh@960'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'account.authentication.EmailAuthBackend',
+    'social_core.backends.facebook.FacebookOAuth2',
+    'social_core.backends.twitter.TwitterOAuth',
+    'social_core.backends.google.GoogleOAuth2',
+]
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '386512170541-ju1ke9s2rd578rvi60omvnh8nfo2u18k.apps.googleusercontent.com' # Google Consumer Key
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'BF3_xQ6GgdmJJYV7EiOASHl0' # Google Consumer Secret
+
+
+
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
