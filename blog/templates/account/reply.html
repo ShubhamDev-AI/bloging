@@ -1,0 +1,58 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+</head>
+
+<body>
+    <form 
+    action="." 
+    method="POST"
+    id="reply_form" 
+    >
+        {% csrf_token %}
+        <div class="form-group">
+            <div id="test">
+                {{ comment_form.media }}
+                {{ comment_form.body }}
+            </div>
+        </div>
+    </form>
+    <!-- 提交按钮 -->
+    <button onclick="confirm_submit({{ post_id }}, {{ parent_comment_id }})" class="btn btn-primary">send</button>
+
+    <script src="{% static 'jquery/jquery-3.3.1.js' %}"></script>
+    <script src="{% static 'popper/popper-1.14.4.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+
+    <!-- csrf token -->
+    <script src="{% static 'js/csrf.js' %}"></script>
+
+    <script>
+    $(function(){
+        $(".django-ckeditor-widget").removeAttr('style');
+    });
+
+    function confirm_submit(post_id, comment_id){
+        // take value from ckeditor
+        let content = CKEDITOR.instances['id_body'].getData();
+        // Call ajax to exchange data with the backend
+        $.ajax({
+            url: '/posts/post-comment/' + post_id + '/' + comment_id,
+            type: 'POST',
+            data: {body: content},
+            // Success callback
+            success: function(e){
+                if(e === '200 OK'){
+                    parent.location.reload();
+                }
+            }
+        })
+    }
+    </script>
+
+</body>
+</html>

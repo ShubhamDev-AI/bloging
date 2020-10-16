@@ -1,36 +1,15 @@
 from django.http import HttpResponse
-from django.shortcuts import render
-from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.models import User
 from .models import Profile
-from .forms import LoginForm, UserRegistrationForm, \
+from .forms import  UserRegistrationForm, \
                    UserEditForm, ProfileEditForm
 # # action
-# from actions.utils import create_action
-# from actions.models import Action
-
-
-def user_login(request):
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            cd = form.cleaned_data
-            user = authenticate(request,
-                                username=cd['username'],
-                                password=cd['password'])
-            if user is not None:
-                if user.is_active:
-                    login(request, user)
-                    return HttpResponse('Authenticated '\
-                                        'successfully')
-                else:
-                    return HttpResponse('Disabled account')
-            else:
-                return HttpResponse('Invalid login')
-    else:
-        form = LoginForm()
-    return render(request, 'account/login.html', {'form': form})
+from actions.utils import create_action
+from actions.models import Action
 
 
 @login_required
@@ -89,4 +68,20 @@ def edit(request):
                   {'user_form': user_form,
                    'profile_form': profile_form})
 
+
+@login_required()
+def user_delete(request, id):
+    if request.method == 'POST':
+        user = User.objects.get(id=id)
+        # Verify that the logged-in user and the user to be deleted are the same
+        if request.user == user:
+            #Log out, delete data and return to blog list
+            logout(request)
+            user.delete()
+            print('user delete:',id)
+            return redirect("login")
+        else:
+            return HttpResponse("You do not have permission to delete operations")
+    else:
+        return HttpResponse("Only accept post requests。")
 

@@ -9,6 +9,8 @@ from django.contrib.auth import get_user_model
 from ckeditor.fields import RichTextField
 # django-mptt
 from mptt.models import MPTTModel, TreeForeignKey
+from PIL import Image
+
 
 
 
@@ -24,7 +26,7 @@ class Category(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('blog:post_list')
+        return reverse('posts:post_list')
 
 
 # post models
@@ -60,7 +62,7 @@ class Post(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('article:article_detail', args=[self.id])
+        return reverse('posts:post_detail', args=[self.id])
 
     def save(self, *args, **kwargs):
         # Call the original save() function
@@ -92,7 +94,6 @@ class Post(models.Model):
 # comments
 class Comment(MPTTModel):
     post = models.ForeignKey(
-        
         Post,
         on_delete=models.CASCADE,
         related_name='comments'

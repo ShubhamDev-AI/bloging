@@ -1,6 +1,7 @@
 
 import os
 from pathlib import Path
+from django.urls import reverse_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +28,7 @@ INSTALLED_APPS = [
     # apps
     'account.apps.AccountConfig',
     'posts.apps.PostsConfig',
+    'actions.apps.ActionsConfig',
     # third party app
     'taggit',
     'social_django',
@@ -156,3 +158,43 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'BF3_xQ6GgdmJJYV7EiOASHl0' # Google Consumer 
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
+
+
+ABSOLUTE_URL_OVERRIDES = {
+ 'auth.user': lambda u: reverse_lazy('posts:user_detail',
+ args=[u.username])
+}
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+
+
+CKEDITOR_CONFIGS = {
+    # django-ckeditor默认使用default配置
+    'default': {
+        # 编辑器宽度自适应
+        'width':'auto',
+        'height':'250px',
+        # tab键转换空格数
+        'tabSpaces': 4,
+        # 工具栏风格
+        'toolbar': 'Custom',
+        # 工具栏按钮
+        'toolbar_Custom': [
+            # 表情 代码块
+            ['Smiley', 'CodeSnippet'], 
+            # 字体风格
+            ['Bold', 'Italic', 'Underline', 'RemoveFormat', 'Blockquote'],
+            # 字体颜色
+            ['TextColor', 'BGColor'],
+            # 链接
+            ['Link', 'Unlink'],
+            # 列表
+            ['NumberedList', 'BulletedList'],
+            # 最大化
+            ['Maximize']
+        ],
+        # 插件
+        'extraPlugins': ','.join(['codesnippet', 'prism', 'widget', 'lineutils']),
+    }
+}

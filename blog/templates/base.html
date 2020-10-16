@@ -12,7 +12,14 @@
       <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900" rel="stylesheet">
 		
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.14.0/css/all.min.css"
+    >
+    <script src="{% static 'ckeditor/ckeditor/plugins/prism/lib/prism/prism_patched.min.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'prism/prism.css' %}">
     <style >
+    
     .navbar {
       background-color:#866ec7;
     }
@@ -34,21 +41,21 @@
 
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <div class="navbar-nav">
-            <a href="" class="nav-item nav-link">Post</a>
+            <a href="{% url "posts:post_list" %}" class="nav-item nav-link">Post</a>
             {% if request.user.is_authenticated %}
                 <a href="{% url "dashboard" %}" class="nav-item nav-link active">Dashboard</a>
                 
-                <a href="" class="nav-item nav-link">Search</a>
-                               <a href="" class="nav-item nav-link">Feed</a>
-                <a href="" class="nav-item nav-link">user details</a>
-                <a href="" class="nav-item nav-link">Peopls</a>
-                <a href="" class="nav-item nav-link">User Activity </a>
+                <a href="{% url "posts:post_search" %}" class="nav-item nav-link">Search</a>
+                <a href="{% url "posts:post_feed" %}" class="nav-item nav-link">Feed</a>
+                <a href="{% url "posts:search" %}" class="nav-item nav-link">user details</a>
+                <a href="{% url "posts:user_list"%}" class="nav-item nav-link">Peopls</a>
+                <a href="{% url 'posts:user_activity' %}" class="nav-item nav-link">User Activity </a>
                 
                 
               {% if user.id == 1 %}
-                <a href="" class="nav-item nav-link">Add Category</a>
+                <a href="{% url 'posts:add-category'%}" class="nav-item nav-link">Add Category</a>
               {% endif %}
-                 <a href="" class="nav-item nav-link">upload Post</a>
+                 <a href="{% url 'posts:post-upload'%}" class="nav-item nav-link">upload Post</a>
 
             {% endif %}
             </div>
@@ -72,6 +79,7 @@
                           <p class="dropdown-item"> {{ request.user.first_name }}  {{ request.user.last_name }}</p>
                           <a class="dropdown-item" href="{% url "dashboard" %}">Dashboard</a>
                           <a class="dropdown-item" href="{% url "edit" %}">Edit Profile</a>
+                          <a class="dropdown-item" href="#" onclick="user_delete()">Delete user</a>
                           <a class="dropdown-item" href="{% url "logout" %}">Log Out</a>
   
                       </div>
@@ -107,16 +115,32 @@
     {% endblock %}
   </div>
 {% comment %} footer {% endcomment %}
-  {% comment %} {% include 'account/footer.html'%} {% endcomment %}
+  {% include 'account/footer.html'%}
 {% comment %} footer end {% endcomment %}
 </body>
+{% if user.is_authenticated %}
+<form 
+    style="display:none;" 
+    id="user_delete"
+    action="{% url 'delete' user.id %}" 
+    method="POST"
+>
+{% csrf_token %}
+    <button type="submit">Delete</button>
+</form>
+{% endif %}
+{% comment %} {% include 'back_to_top_func.html' %} {% endcomment %}
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js"></script>
 <script src="{% static "js/jquery.min.js"%}"></script>
     <script src="{% static "js/popper.js"%}"></script>
-    <script src="{% static "js/bootstrap.min.js"%}"></script>
     <script src="{% static "js/main.js"%}"></script>
+    <script src="{% static 'layer/layer.js' %}"></script>
+    {% comment %} <script src="{% static 'js/csrf.js' %}"></script> {% endcomment %}
+    <script src="{% static 'jquery/jquery-3.3.1.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1-lts/dist/umd/popper.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js"></script>
-  <script>
+  
+<script>
     var csrftoken = Cookies.get('csrftoken');
     function csrfSafeMethod(method) {
       // these HTTP methods do not require CSRF protection
@@ -134,6 +158,80 @@
       {% block domready %}
       {% endblock %}
     });
+
+
+    function user_delete() {
+            //layer
+            layer.open({
+                title: "confirm deletion",
+                content: "Are you sure to delete user profile?",
+                yes: function(index, layero) {
+                    $('form#user_delete button').click();
+                    layer.close(index);
+                },
+            })
+        }
+
+{% comment %} -------------------------------------------------- {% endcomment %}
+    
+    $(".django-ckeditor-widget").removeAttr('style');
+
+    {% comment %} model {% endcomment %}
+    function load_modal(post_id, comment_id) {
+        let modal_body = '#modal_body_' + comment_id;
+        let modal_id = '#comment_' + comment_id;
+
+        // Load editor
+        if ($(modal_body).children().length === 0) {
+            let content = '<iframe src="/posts/post-comment/' + 
+                post_id + 
+                '/' + 
+                comment_id + 
+                '" frameborder="0" style="width: 100%; height: 100%;"></iframe>';
+            $(modal_body).append(content);
+        };
+        $(modal_id).modal('show');
+    }
+    
+
+    {% comment %} ---------------------- csrf  {% endcomment %}
+    $(document).ajaxSend(function(event, xhr, settings) {  
+    function getCookie(name) {  
+        var cookieValue = null;  
+        if (document.cookie && document.cookie != '') {  
+            var cookies = document.cookie.split(';');  
+            for (var i = 0; i < cookies.length; i++) {  
+                var cookie = jQuery.trim(cookies[i]);  
+                // Does this cookie string begin with the name we want?  
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {  
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));  
+                    break;  
+                }  
+            }  
+        }  
+        return cookieValue;  
+    }  
+    function sameOrigin(url) {  
+        // url could be relative or scheme relative or absolute  
+        var host = document.location.host; // host + port  
+        var protocol = document.location.protocol;  
+        var sr_origin = '//' + host;  
+        var origin = protocol + sr_origin;  
+        // Allow absolute or scheme relative URLs to same origin  
+        return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||  
+            (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||  
+            // or any other URL that isn't scheme relative or absolute i.e relative.  
+            !(/^(\/\/|http:|https:).*/.test(url));  
+    }  
+    function safeMethod(method) {  
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));  
+    }  
+  
+    if (!safeMethod(settings.type) && sameOrigin(settings.url)) {  
+        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));  
+    }  
+});  
   </script>
+    <script src="{% static "js/bootstrap.min.js"%}"></script>
 
 </html>

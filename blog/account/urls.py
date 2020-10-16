@@ -20,6 +20,8 @@ urlpatterns = [
 
     path('register/', views.register, name='register'),
     path('edit/', views.edit, name='edit'),
+    path('delete/<int:id>/', views.user_delete, name='delete'),
+
 
     
 ]

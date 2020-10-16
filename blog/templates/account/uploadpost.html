@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Post{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+      {% comment %} side bar {% endcomment %}
+          {% include 'account/sidebar.html'%}
+      {% comment %} end side bar {% endcomment %}
+      <div id="content" class="p-4 p-md-5 pt-5">
+        <h2>Add a new post</h2>
+
+          <form method="post">
+            {{ post_form.media }}
+            {{ post_form.as_p }}
+            {% csrf_token %}
+            <p><input type="submit" value="Add Post"></p>
+          </form>
+      </div>
+      <script>
+
+            var name = "{{ user.id }}";
+            document.getElementById("elder").value = name;
+      </script>
+{% else %}
+  <h1> Please Login...</h1>
+{% endif %}
+{% endblock %}

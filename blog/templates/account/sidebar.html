@@ -1,3 +1,4 @@
+{% load blog_tags %}
 
 <nav id="sidebar">
 				<div class="custom-menu">
@@ -22,7 +23,7 @@
 	            </ul>
 	          </li>
 	          <li>
-	              <a href="{% url "blog:post_feed" %}">Subscribe RSS feed</a>
+	              <a href="{% url "posts:post_feed" %}">Subscribe RSS feed</a>
 	          </li>
 	          <li>
               <a href="#pageSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Latest Post</a>
@@ -40,10 +41,10 @@
               </ul>
 	          </li>
 	          <li>
-              <a href="{% url 'blog:post-upload'%}">Upload Post</a>
+              <a href="{% url 'posts:post-upload'%}">Upload Post</a>
 	          </li>
 			  <li>
-              <a href="{% url 'blog:politics'%}">Politics</a>
+              <a href="{% url 'posts:politics'%}">Politics</a>
 	          </li>
 			  <li>
               <a href="#">Sports</a>

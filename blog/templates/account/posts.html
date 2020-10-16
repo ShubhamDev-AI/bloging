@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load blog_tags %}
+{% load static %}
+{% load my_filters_and_tags %}
+{% block title %}My Blog{% endblock %}
+{% block content %}
+
+
+  
+{% comment %} side bar {% endcomment %}
+    {% include 'account/sidebar.html'%}
+{% comment %} end side bar {% endcomment %}
+        <!-- Page Content  -->
+<div class="container">
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'posts:post_list' %}">
+                    Latest Post
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'posts:post_list' %}?order=total_views">
+                    Hottest Post
+                </a>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- search bar -->
+    <div class="row">
+        <div class="col-auto mr-auto">
+            <form class="form-inline" >
+                <label class="sr-only">content</label>
+                <input type="text" 
+                    class="form-control mb-2 mr-sm-2" 
+                    name="search" 
+                    placeholder="Search articles..." 
+                    required
+                >
+            </form>
+        </div>
+    </div>
+
+    <!-- Search hints -->
+    {% if search %}
+        {% if articles %}
+            <h4><span style="color: red">"{{ search }}"</span>The search results are as follows
+：</h4>
+            <hr>        
+        {% else %}
+            <h4>No<span style="color: red">"{{ search }}"</span>Related articles.
+</h4>
+            <hr>
+        {% endif %}
+    {% endif %}
+        
+    <!-- List loop -->
+    <div class="row mt-2">
+        {% for article in articles %}
+            
+            {% if article.avatar %}
+                <div class="col-3">
+                    <img src="{{ article.avatar.url }}" 
+                         alt="avatar" 
+                         style="max-width:100%; border-radius: 20px"
+                    >
+                </div>
+            {% endif %}
+
+            <div class="col">
+                
+
+                <!-- 标签 -->
+                <span>
+                    {% for tag in article.tags.all %}
+                        <a href="{% url 'posts:post_list' %}?tag={{ tag }}"
+                           class="badge badge-secondary" 
+                        >
+                            {{ tag }}
+                        </a>
+                    {% endfor %}
+                </span>
+
+                <!-- title -->
+                <h4>
+                    <b>
+                        <a href="{% url 'posts:post_detail' article.id %}"
+                           style="color: black;" 
+                        >
+                            {{ article.title }}
+                        </a>
+                    </b>
+                </h4>
+                <!--Summary-->
+                <div>
+                    <p style="color: gray;">
+                        {{ article.body|slice:'100' }}...
+                    </p>
+                </div>
+                <!-- Footnote -->
+                <p>
+                    <!-- extra information -->
+                    <span>
+                        <i class="fas fa-eye" style="color: lightskyblue;"></i>
+                        {{ article.total_views }}&nbsp;&nbsp;&nbsp;
+                    </span>
+                    <span>
+                        <i class="fas fa-comments" style="color: yellowgreen;"></i>
+                        {{ article.comments.count }}&nbsp;&nbsp;&nbsp;
+                    </span>
+                    <span>
+                        <i class="fas fa-clock" style="color: pink;"></i>
+                        <!--
+                        {{ article.created|date:'Y-m-d' }}
+                        -->
+                        {{ article.created|date:'Y-m-d' }}
+                    </span>
+                </p>
+            </div>
+            <hr style="width: 100%;"/>
+        {% endfor %}
+    </div>
+
+    <!-- 页码导航 -->
+    <div class="pagination row">
+        <div class="m-auto">
+            <span class="step-links">
+                <!-- 如果不是第一页，则显示上翻按钮 -->
+                {% if articles.has_previous %}
+                    <a href="?page=1&order={{ order }}&search={{ search }}&column={{ column }}&tag={{ tag }}" class="btn btn-success">
+                        &laquo; 1
+                    </a>
+                    <span>...</span>
+                    <a href="?page={{ articles.previous_page_number }}&order={{ order }}&search={{ search }}&column={{ column }}&tag={{ tag }}" 
+                       class="btn btn-secondary"
+                    >
+                        {{ articles.previous_page_number }}
+                    </a>
+                {% endif %}
+
+                <!-- 当前页面 -->
+                <span class="current btn btn-danger btn-lg">
+                    {{ articles.number }}
+                </span>
+
+                <!-- 如果不是最末页，则显示下翻按钮 -->
+                {% if articles.has_next %}
+                    <a href="?page={{ articles.next_page_number }}&order={{ order }}&search={{ search }}&column={{ column }}&tag={{ tag }}"
+                       class="btn btn-secondary"
+                    >
+                        {{ articles.next_page_number }}
+                    </a>
+                    <span>...</span>
+                    <a href="?page={{ articles.paginator.num_pages }}&order={{ order }}&search={{ search }}&column={{ column }}&tag={{ tag }}"
+                       class="btn btn-success"
+                    >
+                        {{ articles.paginator.num_pages }} &raquo;
+                    </a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+</div>
+  
+{% endblock %}
+
