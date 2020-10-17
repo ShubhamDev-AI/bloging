@@ -36,6 +36,18 @@ urlpatterns = [
     path('post-comment/<int:post_id>', views.post_comment, name='post_comment'),
     path('post-comment/<int:post_id>/<int:parent_comment_id>', views.post_comment, name='comment_reply'),
     path('increase-likes/<int:id>/', views.IncreaseLikesView.as_view(), name='increase_likes'),
+    # history watch later
+    path('watchlater', views.watchlater, name='watchlater'),
+    path('history', views.history, name='history'),
+    path('history/delete/<int:id>/',views.DeleteHistory, name='history_delete'),
+    path('history/delete/post/<int:id>/<int:user>',views.DeletePerHistory, name='history_Per_delete'),
+    path('watchlater/delete/<int:id>/',views.DeleteWatchLater, name='watchlater_delete'),
+    path('watchlater/delete/post/<int:id>/<int:user>',views.DeletePerWatchLater, name='watchlater_Per_delete'),
+    path('blocked',views.BlockedUser, name='blocked'),
+    path('timeline',views.TimeLine, name='timeline'),
+
+
+
 
 
 

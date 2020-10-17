@@ -39,6 +39,10 @@ from actions.utils import create_action
 from actions.models import Action
 import markdown
 from django.db.models import Q
+# history watchlater
+from django.db.models import Case, When
+# blocked user
+from account.models import Blocked
 
 def search(request):
     user_list = User.objects.all()
@@ -143,7 +147,7 @@ def post_detail(request, id):
                    
                    })
 
-
+@login_required()
 def post_share(request, post_id):
     # Retrieve post by id
     post = get_object_or_404(Post, id=post_id, status='published')
@@ -226,13 +230,14 @@ class DeletePostView(DeleteView):
         return reverse('posts:post_list')
 
 
+
 class AddCategoryView(CreateView):
     model = Category
     template_name = 'account/add_category.html'
     fields = '__all__'
 
 
-
+@login_required()
 def CategoryView(request,cats):
     category_post = Post.objects.filter(category=cats.replace('_',' '))
     paginator = Paginator(category_post, 3) # 3 posts in each page
@@ -266,16 +271,10 @@ def user_list(request):
 
 @login_required
 def user_detail(request, username):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[-1].strip()
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    print(ip)
     user_id = User.objects.filter(username= username).values_list('id',flat=True)
     for i in user_id:
         pass
-    followed_people = Contact.objects.filter(user_from=i).values('user_to')
+    followed_people = Contact.objects.filter(user_to=i,user_from=request.user.id).values('user_to')
     stories = Post.objects.filter(author__in=followed_people) 
 
     user = get_object_or_404(User,
@@ -317,15 +316,17 @@ def user_activity(request):
     actions = Action.objects.exclude(user=request.user)
     following_ids = request.user.following.values_list('id',
                                                        flat=True)
+    print(following_ids)
     if following_ids:
         # If user is following others, retrieve only their actions
         actions = actions.filter(user_id__in=following_ids)
+        print(actions)
     actions = actions.select_related('user', 'user__profile')\
                      .prefetch_related('target')[:10]
-
+    
     return render(request,
                   'account/activities.html',
-                  {'actions': actions})
+                  {'action': actions})
 
 
 # comments 
@@ -375,4 +376,95 @@ class IncreaseLikesView(View):
         post.likes += 1
         post.save()
         return HttpResponse('success')
+
+
+
+# history
+@login_required()
+def history(request):
+    if request.method == "POST":
+        user = request.user
+        post_id = request.POST['post_id']
+        history = History(user=user, post_hist_id=post_id)
+        history.save()
+
+        return redirect(f"/posts/{post_id}")
+
+    history = History.objects.filter(user=request.user)
+    ids = []
+    for i in history:
+        ids.append(i.post_hist_id)
+    
+    preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
+    post = Post.objects.filter(id__in=ids).order_by(preserved)
+
+    return render(request, 'account/history.html', {"history": post})
+
+@login_required()
+def watchlater(request):
+    if request.method == "POST":
+        user = request.user
+        post_watch_id = request.POST['post_id']
+        watch = Watchlater.objects.filter(user=user)
+        
+        for i in watch:
+            if post_watch_id == i.post_watch_id:
+                message = "Your Post is Already Added"
+                break
+        else:
+            watchlater = Watchlater(user=user, post_watch_id=post_watch_id)
+            watchlater.save()
+            message = "Your post is Succesfully Added"
+
+    wl = Watchlater.objects.filter(user=request.user)
+    ids = []
+    for i in wl:
+        ids.append(i.post_watch_id)
+    
+    preserved1 = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
+    post = Post.objects.filter(id__in=ids).order_by(preserved1)
+
+    return render(request, "account/watchlater.html", {'post': post})
+
+# delete history
+@login_required()
+def DeleteHistory(request,id):
+    history = History.objects.filter(user_id=id).delete()
+    return redirect('/posts/history')
+
+
+# delete history particular post
+@login_required()
+def DeletePerHistory(request,id,user):
+    history = History.objects.filter(post_hist_id=id,user_id=user).delete()
+    return redirect('/posts/history')
+
+# delete watchlater
+@login_required()
+def DeleteWatchLater(request,id):
+    watchlater = Watchlater.objects.filter(user_id=id).delete()
+    return redirect('/posts/watchlater')
+
+# delete per post watch later
+@login_required()
+def DeletePerWatchLater(request,id,user):
+    watchlater = Watchlater.objects.filter(post_watch_id=id,user_id=user).delete()
+    return redirect('/posts/watchlater')
+
+# block unblock user 
+def BlockedUser(request):
+    username =6
+    blocked_users = User.objects.filter(blocked_by__blocked_user=username)
+    post = Post.objects.filter(~Q(author__in=blocked_users))
+    print(Blocked)
+    print(post)
+    return HttpResponse('done')
+
+@login_required()
+def TimeLine(request):
+    followed_people = Contact.objects.filter(user_from=request.user.id).values('user_to')
+    stories = Post.objects.filter(author__in=followed_people)
+    return render(request,
+                  'account/timeline.html',
+                  {'stories': stories})
 

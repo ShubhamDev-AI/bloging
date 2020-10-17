@@ -8,6 +8,7 @@
     {% include 'account/sidebar.html'%}
 {% comment %} end side bar {% endcomment %}
 <div id="content" class="p-4 p-md-5 pt-5">
+<p>{{action}}</p>
 {% with user=action.user profile=action.user.profile %}
 <div class="action">
   <div class="images">

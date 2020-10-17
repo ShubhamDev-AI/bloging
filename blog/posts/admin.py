@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Post, Comment,Category,Contact
+from .models import Post, Comment,Category,Contact,Watchlater,History
 
 
 admin.site.register(Category)
@@ -31,6 +31,19 @@ class CommentAdmin(admin.ModelAdmin):
     search_fields = ('user','parent','reply_to','body')
     list_editable = ('user','parent', 'post', 'active','reply_to')
 
+# history 
+@admin.register(Watchlater)
+class WatchAdmin(admin.ModelAdmin):
+    list_display = ('watch_id','user','post_watch_id')
+    list_filter = ('watch_id','user','post_watch_id')
+    search_fields= ('watch_id','user','post_watch_id')
 
+# history
+@admin.register(History)
+class WatchAdmin(admin.ModelAdmin):
+    list_display = ('hist_id','user','post_hist_id')
+    list_filter = ('hist_id','user','post_hist_id')
+    search_fields= ('hist_id','user','post_hist_id')
+    
 
 

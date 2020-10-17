@@ -5,7 +5,11 @@
 {% block title %}My Blog{% endblock %}
 {% block content %}
 
-
+<style>
+.m1{
+    width:100%;
+}
+</style>
   
 {% comment %} side bar {% endcomment %}
     {% include 'account/sidebar.html'%}
@@ -29,7 +33,7 @@
     </nav>
 
     <!-- search bar -->
-    <div class="row">
+    <div class="row m1">
         <div class="col-auto mr-auto">
             <form class="form-inline" >
                 <label class="sr-only">content</label>
@@ -86,11 +90,20 @@
                 <!-- title -->
                 <h4>
                     <b>
+            {% if user.is_authenticated %}
+                <form action="/posts/history" method="POST">{% csrf_token %}
+                    <input type="hidden" name="post_id" value="{{article.id}}">
                         <a href="{% url 'posts:post_detail' article.id %}"
-                           style="color: black;" 
-                        >
-                            {{ article.title }}
+                           style="color: black;">
+                            <button class="btn btn-outline-danger">{{ article.title }}</button>
                         </a>
+                </form>
+            {% else %}
+                <a href="{% url 'posts:post_detail' article.id %}"
+                           style="color: black;">
+                            <button class="btn btn-outline-danger">{{ article.title }}</button>
+                        </a>
+            {% endif %}
                     </b>
                 </h4>
                 <!--Summary-->

@@ -44,11 +44,12 @@
             <a href="{% url "posts:post_list" %}" class="nav-item nav-link">Post</a>
             {% if request.user.is_authenticated %}
                 <a href="{% url "dashboard" %}" class="nav-item nav-link active">Dashboard</a>
+                <a href="{% url "posts:timeline" %}" class="nav-item nav-link">TimeLine</a>
                 
                 <a href="{% url "posts:post_search" %}" class="nav-item nav-link">Search</a>
                 <a href="{% url "posts:post_feed" %}" class="nav-item nav-link">Feed</a>
                 <a href="{% url "posts:search" %}" class="nav-item nav-link">user details</a>
-                <a href="{% url "posts:user_list"%}" class="nav-item nav-link">Peopls</a>
+                <a href="{% url "posts:user_list"%}" class="nav-item nav-link">Users</a>
                 <a href="{% url 'posts:user_activity' %}" class="nav-item nav-link">User Activity </a>
                 
                 
@@ -76,10 +77,12 @@
                       <img src="/media/{{MEDIA_URL}}/{{user.profile.photo}}" width="40" height="40" class="rounded-circle">
                     </a>
                    <div class="dropdown-menu dropdown-menu-right"      aria-labelledby="navbarDropdownMenuLink">
-                          <p class="dropdown-item"> {{ request.user.first_name }}  {{ request.user.last_name }}</p>
+                          <a class="dropdown-item" href="{{user.get_absolute_url}}"> {{ request.user.first_name }}  {{ request.user.last_name }}</a>
                           <a class="dropdown-item" href="{% url "dashboard" %}">Dashboard</a>
                           <a class="dropdown-item" href="{% url "edit" %}">Edit Profile</a>
                           <a class="dropdown-item" href="#" onclick="user_delete()">Delete user</a>
+                          <a class="dropdown-item" href="{% url "posts:history" %}">History</a>
+                          <a class="dropdown-item" href="{% url "posts:watchlater" %}">Save Post</a>
                           <a class="dropdown-item" href="{% url "logout" %}">Log Out</a>
   
                       </div>
@@ -138,7 +141,7 @@
     {% comment %} <script src="{% static 'js/csrf.js' %}"></script> {% endcomment %}
     <script src="{% static 'jquery/jquery-3.3.1.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1-lts/dist/umd/popper.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    {% comment %} <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> {% endcomment %}
   
 <script>
     var csrftoken = Cookies.get('csrftoken');
@@ -231,7 +234,9 @@
         xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));  
     }  
 });  
-  </script>
+
+
+</script>
     <script src="{% static "js/bootstrap.min.js"%}"></script>
 
 </html>
