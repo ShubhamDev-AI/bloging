@@ -115,10 +115,6 @@ img {
 .profile-edit-btn {
     font-weight: 600;
 }
-
-
-
-
 </style>
 {% comment %} side bar {% endcomment %}
     {% include 'account/sidebar.html'%}
@@ -134,24 +130,30 @@ img {
 				      <button class="btn profile-settings-btn" aria-label="profile settings"><i class="fas fa-cog" aria-hidden="true"></i></button>
 		      	</div>
             <div class="profile-stats">
-            <ul class="list-inline">
-              <li class="list-inline-item">
+            <ul class="list-inline _3dehb">
+              <li class="list-inline-item lh36i">
                 {% with total_followers=user.followers.count %}
                   <span class="count">
-                    <span class="profile-stat-count total">{{ total_followers }}</span> Follower{{ total_followers|pluralize }}
+                    <span class="profile-stat-count total">{{ total_followers }}</span>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalLong1">
+                        Follower{{ total_followers|pluralize }}
+                    </button> 
                   </span>
                 {% endwith %}
               </li>
               
-                <li class="list-inline-item">
+                <li class="list-inline-item lh36i">
                   {% with total_following=user.following.count %}
                     <span class="count">
-                      <span class="profile-stat-count total1">{{ total_following }}</span> Following{{ total_following|pluralize }}
+                      <span class="profile-stat-count total1">{{ total_following }}</span>
+                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalLong"> 
+                      Following{{ total_following|pluralize }}
+                      </button> 
                     </span>
                   {% endwith %}
                 </li>
-                <li class="list-inline-item"><span class="profile-stat-count">206</span> Posts</li>
-                <li class="list-inline-item">
+                <li class="list-inline-item lh36i"><span class="profile-stat-count">{{total_post}}</span> Posts</li>
+                <li class="list-inline-item lh36i">
                     <a href="{% url 'posts:user_follow' %}" data-id="{{ user.id }}" data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="follow button">
                     {% if request.user not in user.followers.all %}
                         Follow
@@ -245,6 +247,63 @@ img {
     </diV>
 
 </div>
+{% comment %}--------------------- follower model--------------------------------- {% endcomment %}
+<!-- Modal -->
+<div class="modal fade" id="exampleModalLong1" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          {% for follow in user.followers.all %} 
+              <a href="{% url 'posts:user_detail' follow.username %}" class="title"> {{ follow.username }}
+             </a>
+              {{follow.first_name}}
+          {% endfor %}
+          
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% comment %} -----------------end follower model--------------------------------- {% endcomment %}
+
+{% comment %} ------------------------following model -------------------------- {% endcomment %}
+<!-- Modal -->
+<div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          {% for follow in user.following.all %} 
+             <a href="{% url 'posts:user_detail' follow.username %}" class="title"> {{ follow.username }}
+             </a>
+              {{follow.first_name}}
+          {% endfor %}
+          {% for photo in user.profile.all %}
+              <img src={{photo}} />
+          {% endfor %}
+         
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% comment %} ------------------------end following model ---------------------- {% endcomment %}
 
 {% endblock %}
 

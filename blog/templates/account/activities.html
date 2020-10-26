@@ -8,8 +8,8 @@
     {% include 'account/sidebar.html'%}
 {% comment %} end side bar {% endcomment %}
 <div id="content" class="p-4 p-md-5 pt-5">
-<p>{{action}}</p>
-{% with user=action.user profile=action.user.profile %}
+{% for i in action %}
+{% with user=i.user profile=i.user.profile %}
 <div class="action">
   <div class="images">
     {% if profile.photo %}
@@ -20,8 +20,8 @@
       </a>
     {% endif %}
 
-    {% if action.target %}
-      {% with target=action.target %}
+    {% if i.target %}
+      {% with target=i.target %}
         {% if target.image %}
           {% thumbnail target.image "80x80" crop="100%" as im %}
           <a href="{{ target.get_absolute_url }}">
@@ -33,14 +33,14 @@
   </div>
   <div class="info">
     <p>
-      <span class="date">{{ action.created|timesince }} ago</span>
+      <span class="date">{{ i.created|timesince }} ago</span>
       <br />
       <a href="{{ user.get_absolute_url }}">
         {{ user.first_name }}
       </a>
-      {{ action.verb }}
-      {% if action.target %}
-        {% with target=action.target %}
+      {{ i.verb }}
+      {% if i.target %}
+        {% with target=i.target %}
           <a href="{{ target.get_absolute_url }}">{{ target }}</a>
         {% endwith %}
       {% endif %}
@@ -48,7 +48,7 @@
   </div>
 </div>
 {% endwith %}
-
+{% endfor %}
 
 </div>
 {% endblock %}

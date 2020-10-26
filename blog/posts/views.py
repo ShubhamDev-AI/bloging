@@ -9,6 +9,7 @@ from django.shortcuts import redirect
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.contrib.postgres.search import TrigramSimilarity
 from .models import *
+from account.models import Profile
 from .forms import EmailPostForm, CommentForm, SearchForm
 from taggit.models import Tag
 from django.http import HttpResponse
@@ -43,6 +44,10 @@ from django.db.models import Q
 from django.db.models import Case, When
 # blocked user
 from account.models import Blocked
+from  notifications.signals  import  notify 
+
+
+
 
 def search(request):
     user_list = User.objects.all()
@@ -57,7 +62,7 @@ def post_list(request):
     search = request.GET.get('search')
     order = request.GET.get('order')
     column = request.GET.get('column')
-    tag = request.GET.get('tag')
+    tag_slug = request.GET.get('tag')
 
     # 初始化查询集
     article_list = Post.objects.all()
@@ -76,9 +81,12 @@ def post_list(request):
     if column is not None and column.isdigit():
         article_list = article_list.filter(column=column)
 
-    # 标签查询集
-    if tag and tag != 'None':
-        article_list = article_list.filter(tags__name__in=[tag])
+    # tag
+    tag = None
+    if tag_slug:
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        article_list = article_list.filter(tags__in=[tag])
+        # article_list = article_list.filter(tags__name__in=[tag])
 
     # 查询集排序
     if order == 'total_views':
@@ -198,12 +206,10 @@ def post_upload(request):
     if request.method == 'POST':
         # A comment was posted
         if form.is_valid():
-            # Save the comment to the database
-            # print (form['title'].value())
-            # print (form.data['title'])
             title =form.data['title']
             form.save()
-            # print(form.title)
+
+            
             return render(request,
                           'account/uploadsuccess.html',{'title':title}
                           )
@@ -224,6 +230,7 @@ class UpdatePostView(UpdateView):
 @method_decorator(login_required, name='dispatch')
 class DeletePostView(DeleteView):
     model = Post
+
     template_name = 'account/delete_post.html'
 
     def get_success_url(self):
@@ -276,7 +283,7 @@ def user_detail(request, username):
         pass
     followed_people = Contact.objects.filter(user_to=i,user_from=request.user.id).values('user_to')
     stories = Post.objects.filter(author__in=followed_people) 
-
+    count = Post.objects.filter(author=i).count()
     user = get_object_or_404(User,
                              username=username,
                              is_active=True)
@@ -284,8 +291,9 @@ def user_detail(request, username):
     return render(request,
                   'account/userdetails.html',
                   {'user': user,
-                    'stories':stories
-                  })
+                    'stories':stories,
+                    'total_post':count,
+                    })
 
 @ajax_required
 @require_POST
@@ -314,15 +322,10 @@ def user_follow(request):
 def user_activity(request):
     # Display all actions by default
     actions = Action.objects.exclude(user=request.user)
-    following_ids = request.user.following.values_list('id',
-                                                       flat=True)
-    print(following_ids)
-    if following_ids:
-        # If user is following others, retrieve only their actions
-        actions = actions.filter(user_id__in=following_ids)
-        print(actions)
+          
     actions = actions.select_related('user', 'user__profile')\
-                     .prefetch_related('target')[:10]
+                     .prefetch_related('target')[:100]
+    
     
     return render(request,
                   'account/activities.html',
@@ -350,9 +353,32 @@ def post_comment(request, post_id, parent_comment_id=None):
                 # Respondent
                 new_comment.reply_to = parent_comment.user
                 new_comment.save()
-                return HttpResponse('200 OK')
+                create_action(request.user, 'comment on post', parent_comment.user)
 
+                # Add code to send notifications to other users 
+                if not parent_comment.user.is_superuser:
+                    notify.send(
+                        request.user,
+                        recipient=parent_comment.user,
+                        verb='Replied to you',
+                        target=post,
+                        action_object=new_comment,
+                    )
+
+                return HttpResponse("200 OK")
             new_comment.save()
+            create_action(request.user, 'comment on post', new_comment.user)
+
+
+             # Add code to send a notification to the administrator 
+            if not request.user.is_superuser:
+                notify.send(
+                        request.user,
+                        recipient=User.objects.filter(is_superuser=1),
+                        verb='Replied to you',
+                        target=post,
+                        action_object=new_comment,
+                    )
             return redirect(post)
         else:
             return HttpResponse("The content of the form is incorrect, please fill in again.")
@@ -373,6 +399,18 @@ def post_comment(request, post_id, parent_comment_id=None):
 class IncreaseLikesView(View):
     def post(self, request, *args, **kwargs):
         post = Post.objects.get(id=kwargs.get('id'))
+        user =Post.objects.filter(id=kwargs.get('id')).values_list('author',flat=True)
+        for i in user:
+            pass
+        notify.send(
+                        request.user,
+                        recipient=User.objects.get(id=i),
+                        verb='like to your post',
+                        target=post,
+                        action_object=post,
+                    )
+        create_action(request.user, 'likes on post',User.objects.get(id=i))
+
         post.likes += 1
         post.save()
         return HttpResponse('success')
@@ -453,18 +491,38 @@ def DeletePerWatchLater(request,id,user):
 
 # block unblock user 
 def BlockedUser(request):
-    username =6
+    username =1
     blocked_users = User.objects.filter(blocked_by__blocked_user=username)
     post = Post.objects.filter(~Q(author__in=blocked_users))
-    print(Blocked)
+    print(blocked_users)
     print(post)
     return HttpResponse('done')
 
 @login_required()
 def TimeLine(request):
-    followed_people = Contact.objects.filter(user_from=request.user.id).values('user_to')
+    followed_people = Contact.objects.filter(user_from=request.user.id).values_list('user_to',flat=True)
     stories = Post.objects.filter(author__in=followed_people)
+    print(stories)
     return render(request,
                   'account/timeline.html',
                   {'stories': stories})
+
+def pie_chart(request):
+    labels = []
+    data = []
+
+    queryset = Post.objects.order_by('-total_views')
+    for like in queryset:
+        labels.append(like.title)
+        data.append(like.total_views)
+
+    return render(request, 'account/charts.html', {
+        'labels': labels,
+        'data': data,
+    })    
+
+
+
+
+
 

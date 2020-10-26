@@ -2,6 +2,8 @@
 import os
 from pathlib import Path
 from django.urls import reverse_lazy
+from django.contrib import messages
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,6 +31,7 @@ INSTALLED_APPS = [
     'account.apps.AccountConfig',
     'posts.apps.PostsConfig',
     'actions.apps.ActionsConfig',
+    'notice.apps.NoticeConfig' , 
     # third party app
     'taggit',
     'social_django',
@@ -41,6 +44,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'bootstrap4',
     'mptt',
+    'notifications' ,
 ]
 
 MIDDLEWARE = [
@@ -132,9 +136,12 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'blog')
 
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger'
+}
 
 # E-mail
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'shubhamzade10055@gmail.com'
 EMAIL_HOST_PASSWORD = 'Shubh@960'
@@ -179,6 +186,7 @@ CKEDITOR_CONFIGS = {
         'tabSpaces': 4,
         # 工具栏风格
         'toolbar': 'Custom',
+        
         # 工具栏按钮
         'toolbar_Custom': [
             # 表情 代码块

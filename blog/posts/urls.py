@@ -45,6 +45,8 @@ urlpatterns = [
     path('watchlater/delete/post/<int:id>/<int:user>',views.DeletePerWatchLater, name='watchlater_Per_delete'),
     path('blocked',views.BlockedUser, name='blocked'),
     path('timeline',views.TimeLine, name='timeline'),
+    path('pie-chart/', views.pie_chart, name='pie-chart'),
+
 
 
 

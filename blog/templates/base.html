@@ -1,4 +1,7 @@
 {% load static %}
+<!-- Introduce the template tag of notifications -->
+{% load notifications_tags %}
+{% notifications_unread as unread_count %}
 {% comment %} account {% endcomment %}
 <!DOCTYPE html>
 <html>
@@ -73,7 +76,20 @@
                 <ul class="navbar-nav">
                 {% if request.user.is_authenticated %}
                     <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 
+                    {% if unread_count %}
+                      <svg viewBox="0088"width="8px"height="8px"> 
+                          <circle cx = "4" 
+                                  cy = "4" 
+                                  r = "4" 
+                                  fill = "#ff6b6b" 
+                                  ></circle> 
+                      </svg>
+                      {% endif %}
+
+
+
+
                       <img src="/media/{{MEDIA_URL}}/{{user.profile.photo}}" width="40" height="40" class="rounded-circle">
                     </a>
                    <div class="dropdown-menu dropdown-menu-right"      aria-labelledby="navbarDropdownMenuLink">
@@ -84,6 +100,12 @@
                           <a class="dropdown-item" href="{% url "posts:history" %}">History</a>
                           <a class="dropdown-item" href="{% url "posts:watchlater" %}">Save Post</a>
                           <a class="dropdown-item" href="{% url "logout" %}">Log Out</a>
+                          {% comment %} notification {% endcomment %}
+                       <a class = "dropdown-item"  the href = "{% url "notice:list" %}"> Notify
+                        {% if unread_count %}
+                        <span class="badge badge-danger">{{ unread_count }}</span>
+                        {% endif %}
+                      </a>
   
                       </div>
                   </li>
