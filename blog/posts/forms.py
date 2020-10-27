@@ -17,9 +17,9 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ['body']
-        widgets = {
-            'body':forms.Textarea(attrs={'rows': 5, 'cols': 100}),
-        }
+        # widgets = {
+        #     'body':forms.Textarea(attrs={'rows': 5, 'cols': 100}),
+        # }
         
 
 # post form 
@@ -35,6 +35,7 @@ class PostForm(forms.ModelForm):
             'title':forms.TextInput(attrs={'class':'form-control'}),
             'slug':forms.TextInput(attrs={'class':'form-control'}),
             'author':forms.TextInput(attrs={'class':'form-control','value':'','id':'elder','type':'hidden'}),
+            'avatar':forms.FileInput(attrs={'class':'form-control'}),
             # 'author': forms.Select(attrs={'class':'form-control'}),
             'body':forms.Textarea(attrs={'rows': 5, 'cols': 100}),
             'category':forms.Select(choices =choice_list,attrs={'class':'form-control'}),

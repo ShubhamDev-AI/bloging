@@ -40,7 +40,7 @@ class Post(models.Model):
     author = models.ForeignKey(User,
                               on_delete=models.CASCADE,
                               related_name='blog_posts')
-    avatar = models.ImageField(upload_to='article/%Y%m%d/', blank=True)
+    avatar = models.FileField(upload_to='media/%Y%m%d/', blank=True)
     body = RichTextField(blank=True ,null=True)
     publish = models.DateTimeField(default=timezone.now)
     created = models.DateTimeField(auto_now_add=True)
@@ -66,7 +66,7 @@ class Post(models.Model):
 
     def save(self, *args, **kwargs):
         # Call the original save() function
-        article = super(Post, self).save(*args, **kwargs)
+        post = super(Post, self).save(*args, **kwargs)
 
         # Fixed width zoom image size
         if self.avatar and not kwargs.get('update_fields'):
@@ -77,7 +77,7 @@ class Post(models.Model):
             resized_image = image.resize((new_x, new_y), Image.ANTIALIAS)
             resized_image.save(self.avatar.path)
 
-        return article
+        return post
 
     def was_created_recently(self):
         # If the article is published within 1 minute, return True

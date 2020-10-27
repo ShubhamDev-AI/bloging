@@ -5,6 +5,8 @@
 {% block title %}{{ post.title }}{% endblock %}
 {% block content %}
 {% if message%}
+<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+
 <script>
     Swal.fire({
         position: 'top-end',
@@ -95,7 +97,29 @@
   {% empty %}
     There are no similar posts yet.
   {% endfor %}
-  
+  {% comment %} -----------prev next --------- {% endcomment %}
+  <br>
+            <div class="row justify-content-end">
+                {% if next_article %}
+                <div class="col-auto mr-auto">
+                    <a  href="{{ next_article.get_absolute_url }}" 
+                        class="btn btn-info"
+                        >
+                        {{ next_article.title }}
+                    </a>
+                </div>
+                {% endif %}
+            {% if pre_article %}
+                <div class="col-auto">
+                    <a  href="{{ pre_article.get_absolute_url }}" 
+                    class="btn btn-info" 
+                    >
+                        {{ pre_article.title }}
+                    </a>
+                </div>
+            {% endif %}
+            </div>
+        {% comment %} -------end prev next -------------- {% endcomment %}
   
 <!-- Comment with nested comments -->
 <!-- Comment -->
@@ -103,13 +127,26 @@
 {% if user.is_authenticated %}
  <div>
     <form action="{% url 'posts:post_comment' post.id %}" method="POST">
+        {{ post_form.media }}
         {% csrf_token %}
-        <div class="form-group">
+        {% comment %} <div class="form-group">
          <label for="body">
-          <strong>I want to speak too：</strong>
+          <strong>Comments：</strong>
          </label>
-         <textarea type="text" class="form-control" id="body" name="body" rows="2"></textarea>
-        </div>
+         <textarea type="text" class="form-control" id="body" name="body" rows="100"></textarea>
+        </div> {% endcomment %}                       
+         <div class="form-group">
+                            <label for="body">
+                                <strong>
+                                    Comments:
+                                </strong>
+                            </label>
+                            <br>
+                            <div>
+                                {{ comment_form.media }}
+                                {{ comment_form.body }}
+                            </div>
+                        </div>
         <!-- Submit button -->
         <button type="submit" class="btn btn-primary ">send</button>                    
     </form>

@@ -17,7 +17,7 @@
                 <div class="col-3">
                     <img src="{{ story.avatar.url }}" 
                          alt="avatar" 
-                         style="max-width:100%; border-radius: 20px"
+                         style="max-width:100%; border-radius: 20px;height: max-content; max-height: 160px;width:max-content;"
                     >
                 </div>
             {% endif %}
@@ -79,6 +79,45 @@
     </div>
 
     </diV>
+
+    <div class="pagination row">
+        <div class="m-auto">
+            <span class="step-links">
+                <!-- 如果不是第一页，则显示上翻按钮 -->
+                {% if stories.has_previous %}
+                    <a href="?page=1&order={{ order }}&search={{ search }}&column={{ column }}&tag={{ tag }}" class="btn btn-success">
+                        &laquo; 1
+                    </a>
+                    <span>...</span>
+                    <a href="?page={{ stories.previous_page_number }}&order={{ order }}&search={{ search }}&column={{ column }}&tag={{ tag }}" 
+                       class="btn btn-secondary"
+                    >
+                        {{ stories.previous_page_number }}
+                    </a>
+                {% endif %}
+
+                <!-- 当前页面 -->
+                <span class="current btn btn-danger btn-lg">
+                    {{ stories.number }}
+                </span>
+
+                <!-- 如果不是最末页，则显示下翻按钮 -->
+                {% if stories.has_next %}
+                    <a href="?page={{ stories.next_page_number }}&order={{ order }}&search={{ search }}&column={{ column }}&tag={{ tag }}"
+                       class="btn btn-secondary"
+                    >
+                        {{ stories.next_page_number }}
+                    </a>
+                    <span>...</span>
+                    <a href="?page={{ stories.paginator.num_pages }}&order={{ order }}&search={{ search }}&column={{ column }}&tag={{ tag }}"
+                       class="btn btn-success"
+                    >
+                        {{ stories.paginator.num_pages }} &raquo;
+                    </a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
 
 
 

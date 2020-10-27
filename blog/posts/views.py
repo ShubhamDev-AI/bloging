@@ -115,7 +115,6 @@ def post_list(request):
 @login_required
 def post_detail(request, id):
     post = get_object_or_404(Post,id=id)
-    print(post.id)
     # Views+1 
     post.total_views  +=  1 
     post.save( update_fields = ['total_views'])
@@ -147,12 +146,11 @@ def post_detail(request, id):
                   {'post': post,
                 #    'comments': comments,
                 #    'new_comment': new_comment,
-                #    'comment_form': comment_form,
+                   'comment_form': comment_form,
                    'similar_posts': similar_posts,
                    'comments': comments,
-                    
-                    
-                   
+                   'pre_article': pre_article,
+                   'next_article': next_article,   
                    })
 
 @login_required()
@@ -201,36 +199,28 @@ def post_search(request):
 @login_required
 def post_upload(request):
     form_class = PostForm
-    form = form_class(request.POST or None)
-
+    form = form_class(request.POST or None,request.FILES or None)
     if request.method == 'POST':
         # A comment was posted
         if form.is_valid():
             title =form.data['title']
+            # avatar = form.data['avatar']
+            # print(avatar)
             form.save()
-
-            
-            return render(request,
-                          'account/uploadsuccess.html',{'title':title}
-                          )
+            return render(request,'account/uploadsuccess.html',{'title':title})
     else:
         form = PostForm()
-
-    return render(request,
-                  'account/uploadpost.html',
-                  {'post_form':form
-                    })
+    return render(request,'account/uploadpost.html',{'post_form':form})
 
 @method_decorator(login_required, name='dispatch')
 class UpdatePostView(UpdateView):
     model = Post
     template_name = 'account/update_post.html'
-    fields = ['title','slug','body','status','tags']
+    fields = ['title','avatar','body','status','tags']
 
 @method_decorator(login_required, name='dispatch')
 class DeletePostView(DeleteView):
     model = Post
-
     template_name = 'account/delete_post.html'
 
     def get_success_url(self):
@@ -502,7 +492,9 @@ def BlockedUser(request):
 def TimeLine(request):
     followed_people = Contact.objects.filter(user_from=request.user.id).values_list('user_to',flat=True)
     stories = Post.objects.filter(author__in=followed_people)
-    print(stories)
+    paginator = Paginator(stories,4)
+    page = request.GET.get('page')
+    stories = paginator.get_page(page)
     return render(request,
                   'account/timeline.html',
                   {'stories': stories})
