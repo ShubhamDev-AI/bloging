@@ -30,6 +30,8 @@ urlpatterns = [
     path('activate/<uidb64>/<token>',
          VerificationView.as_view(), name='activate'),
     path('register', RegistrationView.as_view(), name="register"),
+    path('profileupload', views.ProfileUpload, name="profileupload"),
+
 
 
 

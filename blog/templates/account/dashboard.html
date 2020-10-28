@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-
 {% block title %}Dashboard{% endblock %}
+
 
 {% block content %}
 {% comment %} side bar {% endcomment %}
@@ -11,5 +11,62 @@
   <p>Welcome to your dashboard. You can <a href="{% url "edit" %}">edit your profile</a> or <a href="{% url "password_change" %}">change your password</a>.
         <img src="/media/{{MEDIA_URL}}/{{user.profile.photo}}" alt="user_profile" width="120"/>
   </p>
+  <div>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+  Profile
+</button>
+  </div>
+  <!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        
+      </div>
+      <div class="modal-body">
+          {% comment %} <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{form.as_p }}
+
+      <p><input type="submit" value="Upload Profile"></p>
+    </form> {% endcomment %}
+        <form method="post" enctype="multipart/form-data">
+          <div class="form-group">
+            <input type="text" class="form-control" id="exampleInputUser" aria-describedby="emailHelp" value={{user.username}} hidden>
+            
+          </div>
+          <div class="form-group">
+            <label for="exampleInputEmail1">Date of birth</label>
+           
+            <div class='input-group date' id='datetimepicker1'>
+               <input type='text' class="form-control" />
+               <span class="input-group-addon">
+               <span class="glyphicon glyphicon-calendar"></span>
+               </span>
+              
+         </div>
+          </div>
+          <div class="form-group">
+            <label for="exampleFormControlFile1">Example file input</label>
+            <input type="file" class="form-control-file" id="exampleFormControlFile1">
+          </div>
+        <div class="form-group">
+          <label for="exampleBio">Bio</label>
+          <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+        </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 {% endblock %}

@@ -29,3 +29,11 @@ class ProfileEditForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ('date_of_birth', 'photo')
+
+class ProfileUploadForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ('user','date_of_birth', 'photo','bio')
+        # widgets = {
+        #     'user':forms.TextInput(attrs={'class':'form-control','value':'','id':'elder','type':'hidden'})
+        # }

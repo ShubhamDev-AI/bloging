@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'bootstrap4',
     'mptt',
     'notifications' ,
+    'pwa',
 ]
 
 MIDDLEWARE = [
@@ -157,8 +158,8 @@ AUTHENTICATION_BACKENDS = [
     'social_core.backends.google.GoogleOAuth2',
 ]
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '386512170541-ju1ke9s2rd578rvi60omvnh8nfo2u18k.apps.googleusercontent.com' # Google Consumer Key
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'BF3_xQ6GgdmJJYV7EiOASHl0' # Google Consumer Secret
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '391072358124-libnelhdoi58mfjn2b3l69qevrecmg2m.apps.googleusercontent.com' # Google Consumer Key
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'nt45ck8r6e45YOrRhA__dC_X' # Google Consumer Secret
 
 
 
@@ -206,3 +207,5 @@ CKEDITOR_CONFIGS = {
         'extraPlugins': ','.join(['codesnippet', 'prism', 'widget', 'lineutils']),
     }
 }
+
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/js', 'serviceworker.js')

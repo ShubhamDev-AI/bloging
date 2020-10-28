@@ -1,3 +1,4 @@
+{% load pwa %}
 {% load static %}
 <!-- Introduce the template tag of notifications -->
 {% load notifications_tags %}
@@ -6,6 +7,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+{% progressive_web_app_meta %}
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
       <title>{% block title %}{% endblock %}</title>
@@ -34,12 +36,18 @@
     border-radius: 5px;  
 }
     
+.bs-example {
+    padding-bottom: 116px;
+}
+
+
     </style>
+    
 </head>
 <body>
 <div class="bs-example">
 {% comment %} navigation menu {% endcomment %}
-    <nav class="navbar navbar-expand-md navbar-dark">
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top" >
         <a href="" class="navbar-brand">My Blogs</a>
         <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
             <span class="navbar-toggler-icon"></span>
@@ -138,7 +146,7 @@
   {% endif %}
 {% comment %} side bar {% endcomment %}
 
-<div class="wrapper d-flex align-items-stretch">
+<div class="wrapper d-flex align-items-stretch moving">
     {% block content %}
     {% endblock %}
   </div>
@@ -326,4 +334,9 @@
 </script>
     <script src="{% static "js/bootstrap.min.js"%}"></script>
 
+        
+    
+
+
+  
 </html>

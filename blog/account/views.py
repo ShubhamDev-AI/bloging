@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Profile
 from .forms import  UserRegistrationForm, \
-                   UserEditForm, ProfileEditForm
+                   UserEditForm, ProfileEditForm,ProfileUploadForm
 # # action
 from actions.utils import create_action
 from actions.models import Action
@@ -28,11 +28,28 @@ from django.http import JsonResponse
 
 @login_required
 def dashboard(request):
+    print(request.user.id)
     image_list = Profile.objects.all()
     return render(request,
                   'account/dashboard.html',
                   {'section': 'dashboard',
                   'images' : image_list})
+
+def ProfileUpload(request):
+    form_class = ProfileUploadForm
+    form = form_class(request.POST or None,request.FILES or None)
+    if request.method == 'POST':
+        # A comment was posted
+        if form.is_valid():
+            title =form.data['user']
+            # avatar = form.data['avatar']
+            # print(avatar)
+            form.save()
+            return render(request,'account/dashboard.html',{'title':title})
+    else:
+        forms = ProfileUploadForm()
+    return render(request,'account/dashboard.html',{'forms':forms})
+
 
 
 # def register(request):
@@ -200,4 +217,14 @@ class VerificationView(View):
         return redirect('login')
 
 
+def get_ip(request):
+    try:
+        x_foward = request.META.get("HTTP_X_FOWARDED_FOR")
+        if x_foward:
+            ip = x_foward.split(",")[0]
+        else:
+            ip = request.META.get("REMOTE_ADDR")
+    except:
+        ip = '127.0.0.1'
+    return ip
 
