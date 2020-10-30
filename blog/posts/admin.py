@@ -30,6 +30,8 @@ class CommentAdmin(admin.ModelAdmin):
     list_filter = ('active', 'created', 'updated')
     search_fields = ('user','parent','reply_to','body')
     list_editable = ('user','parent', 'post', 'active','reply_to')
+    list_per_page = 5
+    list_max_show_all = 8
 
 # history 
 @admin.register(Watchlater)
@@ -37,6 +39,8 @@ class WatchAdmin(admin.ModelAdmin):
     list_display = ('watch_id','user','post_watch_id')
     list_filter = ('watch_id','user','post_watch_id')
     search_fields= ('watch_id','user','post_watch_id')
+    list_per_page = 5
+    list_max_show_all = 8
 
 # history
 @admin.register(History)
@@ -44,6 +48,8 @@ class WatchAdmin(admin.ModelAdmin):
     list_display = ('hist_id','user','post_hist_id')
     list_filter = ('hist_id','user','post_hist_id')
     search_fields= ('hist_id','user','post_hist_id')
+    list_per_page = 20
+    list_max_show_all = 8
     
 
 

@@ -10,6 +10,10 @@ from ckeditor.fields import RichTextField
 # django-mptt
 from mptt.models import MPTTModel, TreeForeignKey
 from PIL import Image
+from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ValidationError
+from django.core.cache import cache
+from posts.exceptions import AlreadyExistsError, AlreadyFriendsError
 
 
 
@@ -48,8 +52,11 @@ class Post(models.Model):
     status = models.CharField(max_length=10,
                               choices=STATUS_CHOICES,
                               default='draft')
-    likes = models.PositiveIntegerField(default=0)    
+    likes = models.PositiveIntegerField(default=0)
+    like = models.ManyToManyField(User,related_name='blog_post')
+    dislike = models.ManyToManyField(User,related_name='blog_post_dislike')    
     total_views =models.PositiveIntegerField(default=0)
+    user_total_views =models.PositiveIntegerField(default=0)
     category = models.CharField(max_length=210,default='web technology')
     objects = models.Manager() # The default manager.
     published = PublishedManager() # Our custom manager.
@@ -88,6 +95,13 @@ class Post(models.Model):
             return True
         else:
             return False
+
+    def total_likes(self):
+        return self.like.count()
+
+    def total_dislikes(self):
+        return self.dislike.count()
+
 
 
 
@@ -146,6 +160,82 @@ class History(models.Model):
     post_hist_id = models.CharField(max_length=10000000, default="")
 
 
+class FollowingManager(models.Manager):
+    """ Following manager """
+
+    def followers(self, user):
+        """ Return a list of all followers """
+        key = cache_key("followers", user.pk)
+        followers = cache.get(key)
+
+        if followers is None:
+            qs = Follow.objects.filter(followee=user).all()
+            followers = [u.follower for u in qs]
+            cache.set(key, followers)
+
+        return followers
+
+    def following(self, user):
+        """ Return a list of all users the given user follows """
+        key = cache_key("following", user.pk)
+        following = cache.get(key)
+
+        if following is None:
+            qs = Follow.objects.filter(follower=user).all()
+            following = [u.followee for u in qs]
+            cache.set(key, following)
+
+        return following
+
+    def add_follower(self, follower, followee):
+        """ Create 'follower' follows 'followee' relationship """
+        if follower == followee:
+            raise ValidationError("Users cannot follow themselves")
+
+        relation, created = Follow.objects.get_or_create(
+            follower=follower, followee=followee
+        )
+
+        if created is False:
+            raise AlreadyExistsError(
+                "User '%s' already follows '%s'" % (follower, followee)
+            )
+
+        follower_created.send(sender=self, follower=follower)
+        followee_created.send(sender=self, followee=followee)
+        following_created.send(sender=self, following=relation)
+
+        bust_cache("followers", followee.pk)
+        bust_cache("following", follower.pk)
+
+        return relation
+
+    def remove_follower(self, follower, followee):
+        """ Remove 'follower' follows 'followee' relationship """
+        try:
+            rel = Follow.objects.get(follower=follower, followee=followee)
+            follower_removed.send(sender=rel, follower=rel.follower)
+            followee_removed.send(sender=rel, followee=rel.followee)
+            following_removed.send(sender=rel, following=rel)
+            rel.delete()
+            bust_cache("followers", followee.pk)
+            bust_cache("following", follower.pk)
+            return True
+        except Follow.DoesNotExist:
+            return False
+
+    def follows(self, follower, followee):
+        """ Does follower follow followee? Smartly uses caches if exists """
+        followers = cache.get(cache_key("following", follower.pk))
+        following = cache.get(cache_key("followers", followee.pk))
+
+        if followers and followee in followers:
+            return True
+        elif following and follower in following:
+            return True
+        else:
+            return Follow.objects.filter(follower=follower, followee=followee).exists()
+
 # follow and unfollow system
 class Contact(models.Model):
     user_from = models.ForeignKey('auth.User',
@@ -156,14 +246,23 @@ class Contact(models.Model):
                                 on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True,
                                    db_index=True)
+    objects = FollowingManager()
 
     class Meta:
+        verbose_name = _("Following Relationship")
+        verbose_name_plural = _("Following Relationships")
         unique_together = ('user_from', 'user_to')
         ordering = ('-created',)
 
     def __str__(self):
-        return f'{self.user_from} follows {self.user_to}'
+        return "User #%s follows #%s" % (self.user_from, self.user_to)
+        # return f'{self.user_from} follows {self.user_to}'
 
+    def save(self, *args, **kwargs):
+        # Ensure users can't be friends with themselves
+        if self.user_from == self.user_to:
+            raise ValidationError("Users cannot follow themselves.")
+        super(Contact, self).save(*args, **kwargs)
 
 # Add following field to User dynamically
 user_model = get_user_model()

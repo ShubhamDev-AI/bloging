@@ -242,7 +242,6 @@
 </div>  
 </div>
 <script>
-
 {% comment %} likes---------------- {% endcomment %}
 function validate_is_like(url, id, likes) {
         // Retrieve the data in LocalStorage
@@ -318,8 +317,8 @@ function post_reply_and_show_it(new_comment_id) {
         window.location.replace(next_url + "#comment_elem_" + new_comment_id);
     };
 </script>
-{% comment %} <script src="{% static 'ckeditor/ckeditor/plugins/prism/lib/prism/prism_patched.min.js' %}"></script>  {% endcomment %}
-{% comment %} <link rel="stylesheet" href="{% static 'prism/prism.css' %}"> {% endcomment %}
+<script src="{% static 'ckeditor/ckeditor/plugins/prism/lib/prism/prism_patched.min.js' %}"></script> 
+<link rel="stylesheet" href="{% static 'prism/prism.css' %}">
 
 </div>
 {% endblock %}

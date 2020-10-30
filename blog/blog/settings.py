@@ -40,12 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.sitemaps',
     'django.contrib.postgres',
     'easy_thumbnails',
-    'ckeditor',
     'widget_tweaks',
     'bootstrap4',
     'mptt',
     'notifications' ,
     'pwa',
+    'ckeditor'
 ]
 
 MIDDLEWARE = [

@@ -25,7 +25,6 @@ from .filters import UserFilter
 # like 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-import redis
 from django.conf import settings
 
 # update post
@@ -44,21 +43,80 @@ from django.db.models import Q
 from django.db.models import Case, When
 # blocked user
 from account.models import Blocked
+# notify
 from  notifications.signals  import  notify 
+# trending
+from datetime import datetime,timedelta
+now = datetime.now().strftime("%Y-%m-%d %H:%M")
+today = datetime.today()
+long_ago = today + timedelta(days=-30)
+long_ago_timeline = today + timedelta(days=-15)
 
+import numpy as np 
+from django.contrib.auth.models import User
 
-
-
+# -------------- trending algorithm ---------------------------------------
+def trendingpostfunction():
+    rdata = Post.objects.filter(publish__gte=long_ago)
+    likerate = []
+    dislikerate = []
+    viewrate = []
+    for i in rdata:
+        lr = i.total_likes() + 1
+        vr = i.total_views + 1
+        lr = lr / vr
+        likerate.append(lr)
+        dr = i.total_dislikes() + 1
+        dr = dr / vr
+        dislikerate.append(dr)
+        u = User.objects.count()
+        vrt = vr / u
+        viewrate.append(vrt)
+    lr1 = np.array(likerate)
+    dr1 = np.array(dislikerate)
+    vr1 = np.array(viewrate)
+    lr = lr1.round(2)
+    dr = dr1.round(2)
+    vr = vr1.round(2)
+    results = []
+    for i in lr, dr, vr:
+        a = (lr - dr) + vr
+        a = a * 50
+    rdata = Post.objects.filter(publish__gte=long_ago)
+    trendingdata = a
+    j = 0
+    trendingdict = {}
+    for i in rdata:
+        trendingdict[i.title] = trendingdata[j]
+        j += 1
+    trend = {k: v for k, v in sorted(trendingdict.items(), key=lambda item: item[1], reverse=True)}
+    print('latest trending --', trend)
+    trendlist = []
+    for k in trend.keys():
+        trendlist.append(k)
+    print('trendlist --', trendlist)
+    return trendlist
+    # return HttpResponse('done')
+# -----------------------------------------------------------------------------
 def search(request):
     user_list = User.objects.all()
     user_filter = UserFilter(request.GET, queryset=user_list)
     return render(request, 'account/user_filter.html', {'filter': user_filter})
 
-
-from django.contrib.auth.models import User
-
 # @login_required
 def post_list(request):
+    latesttrend = trendingpostfunction()
+    trendingwithdata = []
+    temp =1
+    for i in latesttrend:
+        obj = Post.objects.get(title=i)
+        trendingwithdata.append(obj)
+        temp +=1
+    trenddouble = trendingwithdata[:2]
+    trendfour = trendingwithdata[2:7]
+    print(trenddouble)
+    print(trendfour)
+
     search = request.GET.get('search')
     order = request.GET.get('order')
     column = request.GET.get('column')
@@ -66,6 +124,9 @@ def post_list(request):
 
     # 初始化查询集
     article_list = Post.objects.all()
+    filter_category = Category.objects.all()
+    authorPost = article_list.order_by('-user_total_views')[:4]
+
 
     # 搜索查询集
     if search:
@@ -106,11 +167,68 @@ def post_list(request):
         'search': search,
         'column': column,
         'tag': tag,
+        'filter_category':filter_category,
+        'trenddouble':trenddouble,
+        'authorPost':authorPost
     }
     # render
     return render(request, 'account/posts.html', context)
 
+# values_list('id', flat=True)
+
+@login_required
+def trendingpost(request,trend):
+    posts = Post.objects.filter(title=trend).all()
+    for post in posts:
+        print(post.id)
+    post.total_views  +=  1 
+    post.save( update_fields = ['total_views'])
+    comments = Comment.objects.filter(post=post.id)
+    comment_form = CommentForm()
+    total_likes = post.total_likes()
+    total_dislikes = post.total_dislikes()
+    liked=False
+    if post.like.filter(id=request.user.id).exists():
+        liked = True
+
+    disliked = False
+    if post.dislike.filter(id=request.user.id).exists():
+        disliked = True
+        
+    # List of similar posts
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.published.filter(tags__in=post_tags_ids)\
+                                  .exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags'))\
+                                .order_by('-same_tags','-publish')[:4]
+
+    pre_article = Post.objects.filter(id__lt=post.id).order_by('-id')
+    next_article = Post.objects.filter(id__gt=post.id).order_by('id')
+    if pre_article.count() > 0:
+        pre_article = pre_article[0]
+    else:
+        pre_article = None
+
+    if next_article.count() > 0:
+        next_article = next_article[0]
+    else:
+        next_article = None
     
+    return render(request,
+                  'account/category_filter.html',
+                  {'post': post,
+                #    'comments': comments,
+                #    'new_comment': new_comment,
+                   'comment_form': comment_form,
+                   'similar_posts': similar_posts,
+                   'comments': comments,
+                   'pre_article': pre_article,
+                   'next_article': next_article, 
+                   'total_likes':total_likes,
+                   'liked':liked,
+                   'total_dislikes':total_dislikes,
+                   'disliked':disliked  
+                   })
 
 @login_required
 def post_detail(request, id):
@@ -118,10 +236,21 @@ def post_detail(request, id):
     # Views+1 
     post.total_views  +=  1 
     post.save( update_fields = ['total_views'])
+    # user total views
+    post.user_total_views +=1
+    post.save( update_fields=['user_total_views'])
     comments = Comment.objects.filter(post=id)
     comment_form = CommentForm()
+    total_likes = post.total_likes()
+    total_dislikes = post.total_dislikes()
+    liked=False
+    if post.like.filter(id=request.user.id).exists():
+        liked = True
 
-
+    disliked = False
+    if post.dislike.filter(id=request.user.id).exists():
+        disliked = True
+        
     # List of similar posts
     post_tags_ids = post.tags.values_list('id', flat=True)
     similar_posts = Post.published.filter(tags__in=post_tags_ids)\
@@ -150,7 +279,11 @@ def post_detail(request, id):
                    'similar_posts': similar_posts,
                    'comments': comments,
                    'pre_article': pre_article,
-                   'next_article': next_article,   
+                   'next_article': next_article, 
+                   'total_likes':total_likes,
+                   'liked':liked,
+                   'total_dislikes':total_dislikes,
+                   'disliked':disliked  
                    })
 
 @login_required()
@@ -236,6 +369,7 @@ class AddCategoryView(CreateView):
 
 @login_required()
 def CategoryView(request,cats):
+    filter_category = Category.objects.all()
     category_post = Post.objects.filter(category=cats.replace('_',' '))
     paginator = Paginator(category_post, 3) # 3 posts in each page
     page = request.GET.get('page')
@@ -247,7 +381,7 @@ def CategoryView(request,cats):
     except EmptyPage:
         # If page is out of range deliver last page of results
         posts = paginator.page(paginator.num_pages)
-    return render (request,'account/categories.html',{'page':page,'cats':cats.title().replace('_',' '),'category_post':category_post,'posts':posts})
+    return render (request,'account/categories.html',{'page':page,'cats':cats.title().replace('_',' '),'category_post':category_post,'posts':posts,'filter_category':filter_category})
 
 
 @login_required
@@ -487,11 +621,11 @@ def BlockedUser(request):
     print(blocked_users)
     print(post)
     return HttpResponse('done')
-
+# publish__gte=long_ago
 @login_required()
 def TimeLine(request):
     followed_people = Contact.objects.filter(user_from=request.user.id).values_list('user_to',flat=True)
-    stories = Post.objects.filter(author__in=followed_people)
+    stories = Post.objects.filter(author__in=followed_people,publish__gte=long_ago_timeline)
     paginator = Paginator(stories,4)
     page = request.GET.get('page')
     stories = paginator.get_page(page)
@@ -499,21 +633,61 @@ def TimeLine(request):
                   'account/timeline.html',
                   {'stories': stories})
 
+@login_required()
 def pie_chart(request):
     labels = []
     data = []
+    likes = []
+    dislike = []
+    views = []
 
     queryset = Post.objects.order_by('-total_views')
     for like in queryset:
         labels.append(like.title)
-        data.append(like.total_views)
+        views.append(like.total_views)
+        likes.append(like.total_likes())
+        dislike.append(like.total_dislikes())
 
-    return render(request, 'account/charts.html', {
-        'labels': labels,
-        'data': data,
-    })    
+    return render(request, 'account/charts.html', {'views':views,'likes':likes,'labels':labels,'dislike':dislike})    
+
+   
 
 
+@login_required()
+def LikeView(request ,pk):
+    post =get_object_or_404(Post, id=request.POST.get('post_id'))
+    liked=False
+    if post.like.filter(id=request.user.id).exists():
+        post.like.remove(request.user)
+        liked=False
+    else:
+        post.like.add(request.user)
+        if post.dislike.filter(id=request.user.id).exists():
+            post.dislike.remove(request.user)
+        liked=True
+    return HttpResponseRedirect(reverse('posts:post_detail',args=[str(pk)]))
+
+
+@login_required()
+def DisLikeView(request ,pk):
+    post =get_object_or_404(Post, id=request.POST.get('post_id'))
+    disliked=False
+    if post.dislike.filter(id=request.user.id).exists():
+        post.dislike.remove(request.user)
+        disliked=False
+    else:
+        post.dislike.add(request.user)
+        if post.like.filter(id=request.user.id).exists():
+            post.like.remove(request.user)
+        disliked=True
+    return HttpResponseRedirect(reverse('posts:post_detail',args=[str(pk)]))
+
+def handler404(request, exception):
+    response = render(request, "account/handlers/404.html", {})
+    response.status_code = 404
+    return response
+def handler500(request):
+    return render(request, 'account/handlers/500.html', status=500)
 
 
 

@@ -13,7 +13,6 @@
     padding-top: 16px;
 }
 </style>
-  
 {% comment %} side bar {% endcomment %}
     {% include 'account/sidebar.html'%}
 {% comment %} end side bar {% endcomment %}
@@ -35,7 +34,7 @@
         </ol>
     </nav>
 
-    <!-- search bar -->
+    {% comment %} <!-- search bar -->
     <div class="row m1">
         <div class="col-auto mr-auto">
             <form class="form-inline" >
@@ -48,23 +47,21 @@
                 >
             </form>
         </div>
-    </div>
+    </div> {% endcomment %}
 
     <!-- Search hints -->
     {% if search %}
         {% if articles %}
-            <h4><span style="color: red">"{{ search }}"</span>The search results are as follows
-：</h4>
+         <h4><span style="color: red">"{{ search }}"</span>The search results are as follows:</h4>
             <hr>        
         {% else %}
-            <h4>No<span style="color: red">"{{ search }}"</span>Related articles.
-</h4>
+            <h4>No<span style="color: red">"{{ search }}"</span>Related articles.</h4>
             <hr>
         {% endif %}
     {% endif %}
         
     <!-- List loop -->
-    <div class="row mt-2">
+    {% comment %} <div class="row mt-2">
         {% for article in articles %}
             
             {% if article.avatar %}
@@ -85,8 +82,6 @@
             
 
             <div class="col">
-                
-
                 <!-- 标签 -->
                 <span>
                     {% for tag in article.tags.all %}
@@ -106,13 +101,13 @@
                     <input type="hidden" name="post_id" value="{{article.id}}">
                         <a href="{% url 'posts:post_detail' article.id %}"
                            style="color: black;">
-                            <button class="btn btn-outline-danger">{{ article.title }}</button>
+                            <button class="btn btn-outline-danger">{{ article.title }} &rarr;</button>
                         </a>
                 </form>
             {% else %}
                 <a href="{% url 'posts:post_detail' article.id %}"
                            style="color: black;">
-                            <button class="btn btn-outline-danger">{{ article.title }}</button>
+                            <button class="btn btn-outline-danger">{{ article.title }} &rarr;</button>
                         </a>
             {% endif %}
                     </b>
@@ -145,7 +140,169 @@
             </div>
             <hr style="width: 100%;"/>
         {% endfor %}
+    </div> {% endcomment %}
+    <!-- Page Content -->
+  <div class="container">
+    <div class="row">
+      <!-- Blog Entries Column -->
+      <div class="col-md-8">
+       <br> 
+        <!-- Blog Post -->
+        <div class="card mb-4">
+          {% for article in articles %}
+            {% if article.avatar %}
+                <a href="{% url   'posts:post_detail' article.id %}">
+                <img class="card-img-top" src="{{ article.avatar.url }}" alt="Card image cap">
+                </a>
+            {% else %}
+                <a href="{% url   'posts:post_detail' article.id %}">
+                <img class="card-img-top" src="{% static 'img/showcase.jpg'%}" alt="Card image cap">
+                </a>
+            {% endif %}
+          <div class="card-body">
+            <span>
+                    {% for tag in article.tags.all %}
+                        <a href="{% url 'posts:post_list' %}?tag={{ tag }}"
+                           class="badge badge-secondary" 
+                        >
+                            {{ tag }}
+                        </a>
+                    {% endfor %}
+                </span>
+            <h2 class="card-title">
+                    {% if user.is_authenticated %}
+                <form action="/posts/history" method="POST">{% csrf_token %}
+                    <input type="hidden" name="post_id" value="{{article.id}}">
+                        <a href="{% url 'posts:post_detail' article.id %}"
+                           style="color: black;">
+                            <button class="btn btn-outline-danger">{{ article.title }}</button>
+                        </a>
+                </form>
+            {% else %}
+                <a href="{% url 'posts:post_detail' article.id %}"
+                           style="color: black;">
+                            <button class="btn btn-outline-danger">{{ article.title }}</button>
+                        </a>
+            {% endif %}
+            </h2>
+            <p class="card-text"style="color:gray;">
+                        {{ article.body|slice:'300' }}...
+            </p>
+            {% if user.is_authenticated %}
+                <form action="/posts/history" method="POST">{% csrf_token %}
+                    <input type="hidden" name="post_id" value="{{article.id}}">
+                        <a href="{% url 'posts:post_detail' article.id %}"
+                           style="color: black;">
+                            <button class="btn btn-outline-danger">Read More &rarr;</button>
+                        </a>
+                </form>
+            {% else %}
+                <a href="{% url 'posts:post_detail' article.id %}"
+                           style="color: black;">
+                            <button class="btn btn-outline-danger">Read More &rarr;</button>
+                        </a>
+            {% endif %}
+          </div>
+          <div class="card-footer text-muted">
+            Posted by
+            <a href="{{ user.get_absolute_url }}">{{article.author}}</a>
+            <div style="float:right;">
+                <p>
+                    <!-- extra information -->
+                    <span>
+                        <i class="fas fa-eye" style="color: lightskyblue;"></i>
+                        {{ article.total_views }}&nbsp;&nbsp;&nbsp;
+                    </span>
+                    <span>
+                        <i class="fas fa-comments" style="color: yellowgreen;"></i>
+                        {{ article.comments.count }}&nbsp;&nbsp;&nbsp;
+                    </span>
+                    <span>
+                        <i class="fas fa-clock" style="color: pink;"></i>
+                        <!--
+                        {{ article.created|date:'Y-m-d' }}
+                        -->
+                        {{ article.created|date:'Y-m-d' }}
+                    </span>
+                </p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Sidebar Widgets Column -->
+      <div class="col-md-4">
+        <!-- Search Widget -->
+        <div class="card my-4">
+          <h5 class="card-header">Search</h5>
+          <div class="card-body">
+            <div class="input-group">
+             <form class="form-inline">
+                <input type="text" class="form-control"name="search" 
+                    placeholder="Search articles..." 
+                    required>
+                <span class="input-group-append">
+                    <button class="btn btn-secondary" type="button">Go!</button>
+                </span>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categories Widget -->
+        <div class="card my-4">
+          <h5 class="card-header">Categories</h5>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-lg-6">
+                <ul class="list-unstyled mb-0">
+                  {% for a in filter_category %}
+                    <li>
+                        <a href="{% url 'posts:category' a %}">{{a}}</a>
+                    </li>
+                  {% endfor %}
+                  
+                </ul>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+
+        <!-- Side Widget -->
+       
+        <div class="card my-4">
+          <h5 class="card-header">Trending Posts</h5>
+          <div class="card-body">
+            <ul class="list-styled mb-0">
+                 {% for trend in trenddouble %}
+                    <li>
+                        <a href="{% url 'posts:post_trend' trend %}">{{trend}}</a>
+                        
+                    </li>
+                    {% comment %} {% url 'posts:post_detail' article.id %} {% endcomment %}
+                {% endfor %}
+          </div>
+        </div>
+        <div class="card my-4">
+          <h5 class="card-header">Top Author Post</h5>
+          <div class="card-body">
+            <ul class="list-styled mb-0">
+            {% for top in authorPost%}
+                    <li>
+                        <p>{{top.title}}</p>                        
+                    </li>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
     </div>
+    <!-- /.row -->
+
+  </div>
+  <!-- /.container -->
 
     <!-- 页码导航 -->
     <div class="pagination row">
@@ -186,6 +343,7 @@
             </span>
         </div>
     </div>
+   
 
 </div>
   

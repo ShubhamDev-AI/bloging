@@ -1,12 +1,12 @@
 {% load blog_tags %}
 
 <nav id="sidebar" class="sticky-top sticky-offset">
-		<div class="custom-menu">
+		{% comment %} <div class="custom-menu">
 			<button type="button" id="sidebarCollapse" class="btn btn-primary">
 	          <i class="fa fa-bars"></i>
 	          <span class="sr-only">Toggle Menu</span>
 	        </button>
-        </div>
+        </div> {% endcomment %}
 		<div class="p-3 pt-1">
 		  	<h1><a href="index.html" class="logo">Post</a></h1>
 	        <ul class="list-unstyled components mb-5">
@@ -45,6 +45,9 @@
 	          </li>
 			  <li>
               <a href="{% url 'posts:politics'%}">Politics</a>
+	          </li>
+			  <li>
+              <a href="{% url 'posts:pie-chart' %}">Charts</a>
 	          </li>
 			  <li>
               <a href="#">Sports</a>
