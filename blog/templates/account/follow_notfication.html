@@ -1,0 +1,35 @@
+<div class="row mt-2 ml-4">
+        <ul class="list-group">
+         <p>Notification of follow and unfollow</p>
+
+            {% for notice in notices %}
+                <li class="list-group-item" id="notice_link">
+                {% if notice.verb == "like to your post" %}
+                {% else  %}
+                    <a href="{% url "notice:followupdate" %}?article_id={{ notice.target.id }}&notice_id={{ notice.id }}"
+                       target="_blank"
+                    >
+                    <span style="color: #5897fb;">
+                        {{ notice.actor }}
+                    </span>
+                         <span style="color: #01a252;">{{ notice.target }}</span> {{ notice.verb }}。
+                    </a>
+               
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ notice.timestamp|date:"Y/m/d H:i" }}
+
+                </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<style>
+    #notice_link a:link {
+        color: black;
+    }
+
+    #notice_link a:visited {
+        color: lightgrey;
+    }
+</style>

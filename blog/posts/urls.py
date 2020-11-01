@@ -13,7 +13,6 @@ app_name = 'posts'
 urlpatterns = [
     
     path('', views.post_list, name='post_list'),
-    # path('tag/<slug:tag_slug>/', views.post_list, name='post_list_by_tag'),
     path('<int:id>/', views.post_detail, name='post_detail'),
     path('<int:post_id>/share/', views.post_share, name='post_share'),
     path('feed/', LatestPostsFeed(), name='post_feed'),
@@ -48,8 +47,34 @@ urlpatterns = [
     path('timeline',views.TimeLine, name='timeline'),
     path('pie-chart/', views.pie_chart, name='pie-chart'),
     path('posttranding/<str:trend>/',views.trendingpost,name="post_trend"),
+    url('^followers/(?P<username>[\w-]+)/$',views.followers,name="friendship_followers"),
+    url('^following/(?P<username>[\w-]+)/$',views.following,name="friendship_following"),
+    url(
+        "^follower/remove/(?P<followee_username>[\w-]+)/$",
+        views.follower_remove,
+        name="follower_remove",
+    ),
+    url(
+        "^blockers/(?P<username>[\w-]+)/$",
+        views.blockers,
+        name="friendship_blockers",
+    ),
+    url(
+        "^blocking/(?P<username>[\w-]+)/$",
+        views.blocking,
+        name="friendship_blocking",
+    ),
+    url(
+        "^block/add/(?P<blocked_username>[\w-]+)/$",
+        views.block_add,
+        name="block_add",
+    ),
+    url(
+        "^block/remove/(?P<blocked_username>[\w-]+)/$",
+        views.block_remove,
+        name="block_remove",
+    ),
 
-    # path('tranding/',views.trendingpostfunction,name="tranding"),
 
 ]
 handler404 = views.handler404

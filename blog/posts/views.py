@@ -328,7 +328,6 @@ def post_search(request):
                    'query': query,
                    'results': results})
 
-
 @login_required
 def post_upload(request):
     form_class = PostForm
@@ -359,13 +358,10 @@ class DeletePostView(DeleteView):
     def get_success_url(self):
         return reverse('posts:post_list')
 
-
-
 class AddCategoryView(CreateView):
     model = Category
     template_name = 'account/add_category.html'
     fields = '__all__'
-
 
 @login_required()
 def CategoryView(request,cats):
@@ -383,78 +379,10 @@ def CategoryView(request,cats):
         posts = paginator.page(paginator.num_pages)
     return render (request,'account/categories.html',{'page':page,'cats':cats.title().replace('_',' '),'category_post':category_post,'posts':posts,'filter_category':filter_category})
 
-
 @login_required
 def PoliticsView(request):
     post_politics =Post.objects.filter(category='politics')
     return render(request, 'account/politics.html',{'post_politics':post_politics})
-
-
-
-# follow and u follow
-@login_required
-def user_list(request):
-    users = User.objects.filter(is_active=True)
-    return render(request,
-                  'account/userlist.html',
-                  {'users': users})
-
-
-@login_required
-def user_detail(request, username):
-    user_id = User.objects.filter(username= username).values_list('id',flat=True)
-    for i in user_id:
-        pass
-    followed_people = Contact.objects.filter(user_to=i,user_from=request.user.id).values('user_to')
-    stories = Post.objects.filter(author__in=followed_people) 
-    count = Post.objects.filter(author=i).count()
-    user = get_object_or_404(User,
-                             username=username,
-                             is_active=True)
-    
-    return render(request,
-                  'account/userdetails.html',
-                  {'user': user,
-                    'stories':stories,
-                    'total_post':count,
-                    })
-
-@ajax_required
-@require_POST
-@login_required
-def user_follow(request):
-    user_id = request.POST.get('id')
-    action = request.POST.get('action')
-    if user_id and action:
-        try:
-            user = User.objects.get(id=user_id)
-            if action == 'follow':
-                Contact.objects.get_or_create(user_from=request.user,
-                                              user_to=user)
-                create_action(request.user, 'is following', user)
-            else:
-                Contact.objects.filter(user_from=request.user,
-                                       user_to=user).delete()
-            return JsonResponse({'status':'ok'})
-        except User.DoesNotExist:
-            return JsonResponse({'status':'error'})
-    return JsonResponse({'status':'error'})
-
-
-# user activity
-@login_required
-def user_activity(request):
-    # Display all actions by default
-    actions = Action.objects.exclude(user=request.user)
-          
-    actions = actions.select_related('user', 'user__profile')\
-                     .prefetch_related('target')[:100]
-    
-    
-    return render(request,
-                  'account/activities.html',
-                  {'action': actions})
-
 
 # comments 
 @login_required () 
@@ -539,8 +467,6 @@ class IncreaseLikesView(View):
         post.save()
         return HttpResponse('success')
 
-
-
 # history
 @login_required()
 def history(request):
@@ -594,7 +520,6 @@ def DeleteHistory(request,id):
     history = History.objects.filter(user_id=id).delete()
     return redirect('/posts/history')
 
-
 # delete history particular post
 @login_required()
 def DeletePerHistory(request,id,user):
@@ -624,7 +549,7 @@ def BlockedUser(request):
 # publish__gte=long_ago
 @login_required()
 def TimeLine(request):
-    followed_people = Contact.objects.filter(user_from=request.user.id).values_list('user_to',flat=True)
+    followed_people = Follow.objects.filter(follower=request.user.id).values_list('followee',flat=True)
     stories = Post.objects.filter(author__in=followed_people,publish__gte=long_ago_timeline)
     paginator = Paginator(stories,4)
     page = request.GET.get('page')
@@ -650,9 +575,6 @@ def pie_chart(request):
 
     return render(request, 'account/charts.html', {'views':views,'likes':likes,'labels':labels,'dislike':dislike})    
 
-   
-
-
 @login_required()
 def LikeView(request ,pk):
     post =get_object_or_404(Post, id=request.POST.get('post_id'))
@@ -666,7 +588,6 @@ def LikeView(request ,pk):
             post.dislike.remove(request.user)
         liked=True
     return HttpResponseRedirect(reverse('posts:post_detail',args=[str(pk)]))
-
 
 @login_required()
 def DisLikeView(request ,pk):
@@ -691,4 +612,206 @@ def handler500(request):
 
 
 
+# -----------------------------follow and unfollow --------------------------------
+# follow and u follow
+@login_required
+def user_list(request):
+    j = []
+    blocked_users = Block.objects.filter(blocked=request.user.id).values('blocker_id')
+    for i in blocked_users:
+        j.append(i['blocker_id'])
+        
+    users = User.objects.exclude(id__in=j)
+    return render(request,
+                  'account/userlist.html',
+                  {'users': users})
+    
+@login_required
+def user_detail(request, username):
+    user_id = User.objects.filter(username= username).values_list('id',flat=True)
+    print(user_id)
+    for i in user_id:
+        pass
+    print(i)
+    followed_people = Follow.objects.filter(followee=i,follower=request.user.id).values('followee')
+    print(followed_people)
+    stories = Post.objects.filter(author__in=followed_people) 
+    count = Post.objects.filter(author=i).count()
+    user = get_object_or_404(User,
+                             username=username,
+                             is_active=True)
+    profile = Profile.objects.filter(user=i).values('photo','bio')
+    return render(request,
+                  'account/userdetails.html',
+                  {'user': user,
+                    'stories':stories,
+                    'total_post':count,
+                    'profile':profile
+                    })
+
+@ajax_required
+@require_POST
+@login_required
+def user_follow(request):
+    user_id = request.POST.get('id')
+    action = request.POST.get('action')
+    if user_id and action:
+        try:
+            user = User.objects.get(id=user_id)
+            if action == 'follow':
+                Follow.objects.get_or_create(follower=request.user,
+                                              followee=user)
+                notify.send(
+                        request.user,
+                        recipient=User.objects.get(id=user_id),
+                        verb='Follow ',
+                        actor=request.user,
+                        target=request.user,
+                        nf_type='followed_by_one_user'
+
+
+                    )
+                create_action(request.user, 'is following', user)
+            else:
+                Follow.objects.filter(follower=request.user,
+                                       followee=user).delete()
+            return JsonResponse({'status':'ok'})
+        except User.DoesNotExist:
+            return JsonResponse({'status':'error'})
+    return JsonResponse({'status':'error'})
+
+# user activity
+@login_required
+def user_activity(request):
+    # Display all actions by default
+    actions = Action.objects.exclude(user=request.user,created__gte=long_ago_timeline)
+          
+    actions = actions.select_related('user', 'user__profile')\
+                     .prefetch_related('target')[:100]
+    
+    
+    return render(request,
+                  'account/activities.html',
+                  {'action': actions})
+
+from .exceptions import AlreadyExistsError
+from .models import Block, Follow, Friend, FriendshipRequest
+try:
+    from django.contrib.auth import get_user_model
+
+    user_model = get_user_model()
+except ImportError:
+    from django.contrib.auth.models import User
+
+    user_model = User
+
+def get_friendship_context_object_name():
+    return getattr(settings, "FRIENDSHIP_CONTEXT_OBJECT_NAME", "user")
+
+def get_friendship_context_object_list_name():
+    return getattr(settings, "FRIENDSHIP_CONTEXT_OBJECT_LIST_NAME", "users")
+
+@login_required
+def followers(request, username, template_name="account/follower_list.html"):
+    """ List this user's followers """
+    user = get_object_or_404(user_model, username=username)
+    followers = Follow.objects.followers(user)
+    return render(
+        request,
+        template_name,
+        {
+            get_friendship_context_object_name(): user,
+            "friendship_context_object_name": get_friendship_context_object_name(),
+            "followers": followers,
+        },
+    )
+
+@login_required
+def following(request,username, template_name="account/following_list.html"):
+    """ List who this user follows """
+    user = get_object_or_404(user_model, username=username)
+    following = Follow.objects.following(user)     
+    return render(
+        request,
+        template_name,
+        {
+            get_friendship_context_object_name(): user,
+            "friendship_context_object_name": get_friendship_context_object_name(),
+            "following": following,
+           
+        },
+    )
+
+@login_required
+def follower_remove(request, followee_username, template_name="account/remove.html"):
+    """ Remove a following relationship """
+    if request.method == "POST":
+        followee = user_model.objects.get(username=followee_username)
+        follower = request.user
+        Follow.objects.remove_follower(follower, followee)
+        return redirect("posts:friendship_following", username=follower.username)
+
+    return render(request, template_name, {"followee_username": followee_username})
+
+# ----------------block -----------unblock--------------------------------------
+def blocking(request, username, template_name="account/blockers_list.html"):
+    """ List this user's followers """
+    user = get_object_or_404(user_model, username=username)
+    Block.objects.blocked(user)
+
+    return render(
+        request,
+        template_name,
+        {
+            get_friendship_context_object_name(): user,
+            "friendship_context_object_name": get_friendship_context_object_name(),
+        },
+    )
+
+
+def blockers(request, username, template_name="account/blocking_list.html"):
+    """ List who this user follows """
+    user = get_object_or_404(user_model, username=username)
+    Block.objects.blocking(user)
+
+    return render(
+        request,
+        template_name,
+        {
+            get_friendship_context_object_name(): user,
+            "friendship_context_object_name": get_friendship_context_object_name(),
+        },
+    )
+
+
+@login_required
+def block_add(request, blocked_username, template_name="account/add.html"):
+    """ Create a following relationship """
+    ctx = {"blocked_username": blocked_username}
+
+    if request.method == "POST":
+        blocked = user_model.objects.get(username=blocked_username)
+        blocker = request.user
+        try:
+            Block.objects.add_block(blocker, blocked)
+        except AlreadyExistsError as e:
+            ctx["errors"] = ["%s" % e]
+        else:
+            return redirect("posts:friendship_blocking", username=blocker.username)
+
+    return render(request, template_name, ctx)
+
+
+@login_required
+def block_remove(
+    request, blocked_username, template_name="account/remove.html"
+):
+    """ Remove a following relationship """
+    if request.method == "POST":
+        blocked = user_model.objects.get(username=blocked_username)
+        blocker = request.user
+        Block.objects.remove_block(blocker, blocked)
+        return redirect("posts:friendship_blocking", username=blocker.username)
+
+    return render(request, template_name, {"blocked_username": blocked_username})
 

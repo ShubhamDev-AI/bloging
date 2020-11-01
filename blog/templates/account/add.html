@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% block title %}Blocking{% endblock %}
+
+{% block content %}
+{% comment %} side bar {% endcomment %}
+    {% include 'account/sidebar.html'%}
+{% comment %} end side bar {% endcomment %}
+<div id="content" class="p-4 p-md-5 pt-5">
+{% if not followee_username == request.user.username %}
+{% if errors %}<p>{{ errors|join:", " }}</p>{% endif %}
+<form method="post">
+{% csrf_token %}
+<input type="hidden" name="blocked_username" value="{{ blocked_username }}" />
+<input type="submit" value="block {{ blocked_username }}" />
+</form>
+{% endif %}
+</div>
+{% endblock%}

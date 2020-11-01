@@ -1,13 +1,26 @@
+from __future__ import absolute_import
 from django.contrib import admin
-from .models import Post, Comment,Category,Contact,Watchlater,History
+from .models import Post, Comment,Category,Watchlater,History,Block, Follow, Friend, FriendshipRequest
 
 
 admin.site.register(Category)
 
-@admin.register(Contact)
-class ContactAdmin(admin.ModelAdmin):
-    list_display = ('user_from','user_to','created')
+@admin.register(Follow)
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('follower','followee','created')
 
+
+@admin.register(Block)
+class BlockAdmin(admin.ModelAdmin):
+    list_display = ('blocker','blocked','created')
+
+@admin.register(Friend)
+class FriendAdmin(admin.ModelAdmin):
+    list_display = ('from_user','to_user','created')
+
+@admin.register(FriendshipRequest)
+class FriendshipRequestAdmin(admin.ModelAdmin):
+    list_display = ('created','from_user','to_user','message','rejected','viewed')
 
 
 @admin.register(Post)

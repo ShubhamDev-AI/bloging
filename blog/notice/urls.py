@@ -8,4 +8,7 @@ urlpatterns = [
     # 通知列表
     path('list/', views.CommentNoticeListView.as_view(), name='list'),
     path('update/', views.CommentNoticeUpdateView.as_view(), name='update'),
+    path('followlist/', views.FollowNoticeListView.as_view(), name='followlist'),
+    path('followupdate/', views.FollowNoticeUpdateView.as_view(), name='followupdate'),
+
 ]
