@@ -209,3 +209,13 @@ for i in latesttrend:
     temp +=1
 trenddouble = trendingwithdata[:2]
 trendfour = trendingwithdata[2:7]
+
+
+
+
+
+{% load disqus_tags %}
+    {% set_disqus_identifier "blogpost_" object.title %}
+    {% set_disqus_title object.title %}
+    {% disqus_show_comments %}
+    <!-- disqus_dev -->

@@ -1,1 +1,38 @@
-<img src="/media/{{MEDIA_URL}}/{{user.profile.photo}}" width="40" height="40" class="rounded-circle">
+<a href="{% url 'posts:block_unblock' %}" data-id="{{ user.username }}" data-action="{% if request.user.id in user.blockees.all %}un{% endif %}block" class="block button bl" id="block">
+
+                              {% if request.user.id not in user.blockees.all %}
+                                  Block
+                              {% else %}
+                                  Unblock
+                              {% endif %}
+                              </a>
+<script>
+$('#block').click(function(a){
+    a.preventDefault();
+    $.post('{% url "posts:block_unblock" %}',
+      {
+        id: $(this).data('id'),
+        action: $(this).data('action')
+      },
+      function(datas){
+        if (datas['status'] == 'ok') {
+          var previous_actions = $('#block').data('action');
+
+          // toggle data-action
+          $('#block').datas('action',
+            previous_actions == 'block' ? 'unblock' : 'block');
+          // toggle link text
+          $('#block').text(
+            previous_actions == 'block' ? 'Unblock' : 'Block');  
+           $("#block").hide();
+        }
+       alert(datas.message)
+
+          {% comment %} var div = document.getElementById('jsondata');
+          div.innerHTML = div.innerHTML + data.message; {% endcomment %}
+        
+
+      }
+    );
+  });
+</script>

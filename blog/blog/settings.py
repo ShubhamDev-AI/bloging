@@ -18,6 +18,12 @@ DEBUG = True
 ALLOWED_HOSTS = ['mysite.com', 'localhost', '127.0.0.1']
 SITE_ID=1
 
+INTERNAL_IPS = [
+    # ...
+    '127.0.0.1',
+    
+    # ...
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -45,7 +51,12 @@ INSTALLED_APPS = [
     'mptt',
     'notifications' ,
     'pwa',
-    'ckeditor'
+    'ckeditor',
+    'ckeditor_uploader',
+    'debug_toolbar',
+    # 'captcha',
+
+
 ]
 
 MIDDLEWARE = [
@@ -56,6 +67,23 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+
+]
+DEBUG_TOOLBAR_PANELS = [
+    'debug_toolbar.panels.versions.VersionsPanel',
+    'debug_toolbar.panels.timer.TimerPanel',
+    'debug_toolbar.panels.settings.SettingsPanel',
+    'debug_toolbar.panels.headers.HeadersPanel',
+    'debug_toolbar.panels.request.RequestPanel',
+    'debug_toolbar.panels.sql.SQLPanel',
+    'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+    'debug_toolbar.panels.templates.TemplatesPanel',
+    'debug_toolbar.panels.cache.CachePanel',
+    'debug_toolbar.panels.signals.SignalsPanel',
+    'debug_toolbar.panels.logging.LoggingPanel',
+    'debug_toolbar.panels.redirects.RedirectsPanel',
+    'debug_toolbar.panels.profiling.ProfilingPanel',
 ]
 
 ROOT_URLCONF = 'blog.urls'
@@ -176,6 +204,17 @@ ABSOLUTE_URL_OVERRIDES = {
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 
+CKEDITOR_JQUERY_URL = 'https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js'
+
+CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_IMAGE_BACKEND = "pillow"
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': None,
+    },
+}
+
 
 CKEDITOR_CONFIGS = {
     # django-ckeditor默认使用default配置
@@ -209,3 +248,23 @@ CKEDITOR_CONFIGS = {
 }
 
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static/js', 'serviceworker.js')
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+        "KEY_PREFIX": "example"
+    }
+}
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = "default"
+CACHE_TTL = 60 * 15
+
+
+# RECAPTCHA_USE_SSL = True
+# RECAPTCHA_PUBLIC_KEY = '76wtgdfsjhsydt7r5FFGFhgsdfytd656sad75fgh'
+# RECAPTCHA_PRIVATE_KEY = '98dfg6df7g56df6gdfgdfg65JHJH656565GFGFGs'

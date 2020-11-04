@@ -13,6 +13,7 @@
     padding-top: 16px;
 }
 </style>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.8.18/themes/base/jquery-ui.css" type="text/css" media="all" /> <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"> </script> <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js" type="text/javascript"></script>
 {% comment %} side bar {% endcomment %}
     {% include 'account/sidebar.html'%}
 {% comment %} end side bar {% endcomment %}
@@ -186,6 +187,7 @@
             {% endif %}
             </h2>
             <p class="card-text"style="color:gray;">
+            {{ips}}
                         {{ article.body|slice:'300' }}...
             </p>
             {% if user.is_authenticated %}
@@ -239,7 +241,7 @@
           <div class="card-body">
             <div class="input-group">
              <form class="form-inline">
-                <input type="text" class="form-control"name="search" 
+                <input type="text" class="form-control" id="txtSearch"name="search" 
                     placeholder="Search articles..." 
                     required>
                 <span class="input-group-append">
@@ -346,6 +348,39 @@
    
 
 </div>
-  
+
+<script>
+{% comment %} $(document).ready(function(){ 
+            $("#txtSearch").autocomplete({
+                source: "/ajax_calls/search/",
+                minLength: 2,
+                open: function(){
+                    setTimeout(function () {
+                        $('.ui-autocomplete').css('z-index', 99);
+                    }, 0);
+                }
+              });
+        }); {% endcomment %}
+        jQuery(function() {
+    $("#txtSearch").on('keyup', function(){
+        var value = $(this).val();
+        $.ajax({
+            url: "{% url 'posts:ajax_autocomplete' %}",
+            data: {
+              'search': value 
+            },
+            dataType: 'json',
+            success: function (data) {
+                list = data.list;
+                $("#txtSearch").autocomplete({
+                source: list,
+                minLength: 10 
+                });       
+            }
+        });        
+    });
+  });
+</script>
+
 {% endblock %}
 

@@ -54,6 +54,44 @@ long_ago_timeline = today + timedelta(days=-15)
 
 import numpy as np 
 from django.contrib.auth.models import User
+# redis cache
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
+CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
+from django.views import generic
+from django.core.exceptions import ObjectDoesNotExist
+import socket
+from django.contrib.contenttypes.models import ContentType
+
+
+# -------------------------------------------
+def get_client_ip(request):
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', None)
+    if ip:
+        ip = ip.split(', ')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR', '')
+    return ip
+
+
+def visitor_counter(request, content_type, object_id):
+    client_ip = get_client_ip(request)
+    visitor, tf = Visitor.objects.get_or_create(content_type=content_type,
+                                                object_id=object_id,
+                                                ip_address=client_ip)
+    if tf or (not visitor.headers):
+        visitor.headers = request.headers
+        visitor.save()
+
+    visitors = Visitor.objects.published()\
+                              .filter(content_type=content_type,
+                                      object_id=object_id)
+
+    return dict(client_ip=client_ip, total_visitors=visitors.count())
+
+# -------------------------------------------
+
 
 # -------------- trending algorithm ---------------------------------------
 def trendingpostfunction():
@@ -103,7 +141,114 @@ def search(request):
     user_filter = UserFilter(request.GET, queryset=user_list)
     return render(request, 'account/user_filter.html', {'filter': user_filter})
 
+# -----------------------------------------
+class DetailPostView(generic.DetailView):
+    model = Post
+    template_name = 'account/details.html'
+
+    # def get_client_ip(self):
+    #     ip = self.request.META.get("HTTP_X_FORWARDED_FOR", None)
+    #     if ip:
+    #         ip = ip.split(", ")[0]
+    #     else:
+    #         ip = self.request.META.get("REMOTE_ADDR", "")
+    #     return ip
+
+    # def visitorCounter(self):
+    #     print(self.request)
+    #     client_ip = self.get_client_ip(self.request)
+    #     visitor, tf = Visitor.objects.get_or_create(post=self.object,ip_address=client_ip)
+    #     if tf or (not visitor.headers):
+    #         visitor.headers = request.headers
+    #         visitor.save()
+
+    #     visitors = Visitor.objects.published()\
+    #                           .filter(content_type=content_type,
+    #                                   object_id=object_id).count()
+    #     return visitors
+
+        # try:
+        #     Visitor.objects.get(post=self.object,ip=self.request.META['REMOTE_ADDR'])
+        # except ObjectDoesNotExist:
+        #     dns = str(socket.getfqdn(self.request.META['REMOTE_ADDR'])).split('.')[-1]
+        #     try:
+        #         # trying for localhost: str(dns) == 'localhost',
+        #         # trying for production: int(dns)
+        #         if str(dns) == 'LAPTOP-5A9FJEG7':
+        #             visitor = Visitor(post=self.object,ip=self.request.META['REMOTE_ADDR'])
+        #             visitor.save()
+        #         else:
+        #             pass
+        #     except ValueError:
+        #         pass
+        # return Visitor.objects.filter(post=self.object).count()
+    def get_visitors(self):
+        """
+        function to get/create the visitor,
+        :return dict of {'client_ip': <str>, 'total_visitors': <int>}
+        """
+        queries = {'request': self.request,
+                   'content_type': self.object.get_content_type(),
+                   'object_id': self.object.id}
+        return visitor_counter(**queries)
+    
+    def get_context_data(self, **kwargs):
+        context_data = super(DetailPostView, self).get_context_data(**kwargs)
+        post = get_object_or_404(Post,id=self.object.id)
+        # Views+1 
+        post.total_views  +=  1 
+        post.save( update_fields = ['total_views'])
+        # user total views
+        post.user_total_views +=1
+        post.save( update_fields=['user_total_views'])
+        comments = Comment.objects.filter(post=self.object.id)
+        comment_form = CommentForm()
+        total_likes = post.total_likes()
+        total_dislikes = post.total_dislikes()
+        liked=False
+        if post.like.filter(id=self.request.user.id).exists():
+            liked = True
+
+        disliked = False
+        if post.dislike.filter(id=self.request.user.id).exists():
+            disliked = True
+        
+        # List of similar posts
+        post_tags_ids = post.tags.values_list('id', flat=True)
+        similar_posts = Post.published.filter(tags__in=post_tags_ids)\
+                                  .exclude(id=post.id)
+        similar_posts = similar_posts.annotate(same_tags=Count('tags'))\
+                                .order_by('-same_tags','-publish')[:4]
+
+        pre_article = Post.objects.filter(id__lt=post.id).order_by('-id')
+        next_article = Post.objects.filter(id__gt=post.id).order_by('id')
+        if pre_article.count() > 0:
+            pre_article = pre_article[0]
+        else:
+            pre_article = None
+
+        if next_article.count() > 0:
+            next_article = next_article[0]
+        else:
+            next_article = None
+        context_data['post'] =post
+        context_data['comments']=comments
+        context_data['comment_form'] =comment_form
+        context_data['similar_posts'] =similar_posts
+        context_data['pre_article'] =pre_article
+        context_data['next_article'] =next_article
+        context_data['total_likes'] =total_likes
+        context_data['liked'] =liked
+        context_data['total_dislikes'] =total_dislikes
+        context_data['disliked'] =disliked
+
+        # context_data['get_client_ip'] = self.get_client_ip()
+        context_data['visitor_counter'] = self.get_visitors()
+        return context_data
+        
+# --------------------------------------------
 # @login_required
+@cache_page(CACHE_TTL)
 def post_list(request):
     latesttrend = trendingpostfunction()
     trendingwithdata = []
@@ -169,13 +314,13 @@ def post_list(request):
         'tag': tag,
         'filter_category':filter_category,
         'trenddouble':trenddouble,
-        'authorPost':authorPost
+        'authorPost':authorPost,
     }
     # render
     return render(request, 'account/posts.html', context)
 
 # values_list('id', flat=True)
-
+@cache_page(CACHE_TTL)
 @login_required
 def trendingpost(request,trend):
     posts = Post.objects.filter(title=trend).all()
@@ -230,6 +375,7 @@ def trendingpost(request,trend):
                    'disliked':disliked  
                    })
 
+@cache_page(CACHE_TTL)
 @login_required
 def post_detail(request, id):
     post = get_object_or_404(Post,id=id)
@@ -603,13 +749,26 @@ def DisLikeView(request ,pk):
         disliked=True
     return HttpResponseRedirect(reverse('posts:post_detail',args=[str(pk)]))
 
+# ----------------------------handlers ------------------------------------------
 def handler404(request, exception):
     response = render(request, "account/handlers/404.html", {})
     response.status_code = 404
     return response
+
 def handler500(request):
     return render(request, 'account/handlers/500.html', status=500)
 
+def handler400(request,exception):
+    response = render_to_response('error_page.html', {'title': '400 Bad Request', 'message': '400'},
+                                  context_instance=RequestContext(request))
+    response.status_code = 400
+    return response
+
+def handler403(request,exception):
+    response = render_to_response('error_page.html', {'title': '403 Permission Denied', 'message': '403'},
+                                  context_instance=RequestContext(request))
+    response.status_code = 403
+    return response
 
 
 # -----------------------------follow and unfollow --------------------------------
@@ -618,10 +777,13 @@ def handler500(request):
 def user_list(request):
     j = []
     blocked_users = Block.objects.filter(blocked=request.user.id).values('blocker_id')
+    print(blocked_users)
     for i in blocked_users:
         j.append(i['blocker_id'])
         
+    print(j)
     users = User.objects.exclude(id__in=j)
+    print(users)
     return render(request,
                   'account/userlist.html',
                   {'users': users})
@@ -629,12 +791,11 @@ def user_list(request):
 @login_required
 def user_detail(request, username):
     user_id = User.objects.filter(username= username).values_list('id',flat=True)
-    print(user_id)
+    
     for i in user_id:
         pass
-    print(i)
+    
     followed_people = Follow.objects.filter(followee=i,follower=request.user.id).values('followee')
-    print(followed_people)
     stories = Post.objects.filter(author__in=followed_people) 
     count = Post.objects.filter(author=i).count()
     user = get_object_or_404(User,
@@ -655,30 +816,34 @@ def user_detail(request, username):
 def user_follow(request):
     user_id = request.POST.get('id')
     action = request.POST.get('action')
-    if user_id and action:
-        try:
-            user = User.objects.get(id=user_id)
-            if action == 'follow':
-                Follow.objects.get_or_create(follower=request.user,
-                                              followee=user)
-                notify.send(
+    j = {'blocked':''}
+    blockeds = Block.objects.all()
+    blocked = Block.objects.filter(blocked=user_id).values('blocked')
+    for j in blocked:
+        pass
+    if user_id == str(j['blocked']):
+        return JsonResponse({'status':'error','message':'Unblock user first'})
+    else:
+        if user_id and action:
+            try:
+                user = User.objects.get(id=user_id)
+                if action == 'follow':
+                    Follow.objects.get_or_create(follower=request.user,followee=user)
+                    return JsonResponse({'status':'ok','message':'Follow Done'})
+                    notify.send(
                         request.user,
                         recipient=User.objects.get(id=user_id),
                         verb='Follow ',
                         actor=request.user,
                         target=request.user,
-                        nf_type='followed_by_one_user'
-
-
-                    )
-                create_action(request.user, 'is following', user)
-            else:
-                Follow.objects.filter(follower=request.user,
-                                       followee=user).delete()
-            return JsonResponse({'status':'ok'})
-        except User.DoesNotExist:
-            return JsonResponse({'status':'error'})
-    return JsonResponse({'status':'error'})
+                        nf_type='followed_by_one_user')
+                    create_action(request.user, 'is following', user)
+                else:
+                    Follow.objects.filter(follower=request.user,followee=user).delete()
+                    return JsonResponse({'status':'ok','message':'UnFollow Done'})
+            except User.DoesNotExist:
+                return JsonResponse({'status':'error','message':'Error Try Again'})
+    return JsonResponse({'status':'error','message':'Error Try Again'})
 
 # user activity
 @login_required
@@ -768,7 +933,6 @@ def blocking(request, username, template_name="account/blockers_list.html"):
         },
     )
 
-
 def blockers(request, username, template_name="account/blocking_list.html"):
     """ List who this user follows """
     user = get_object_or_404(user_model, username=username)
@@ -783,7 +947,6 @@ def blockers(request, username, template_name="account/blocking_list.html"):
         },
     )
 
-
 @login_required
 def block_add(request, blocked_username, template_name="account/add.html"):
     """ Create a following relationship """
@@ -792,8 +955,13 @@ def block_add(request, blocked_username, template_name="account/add.html"):
     if request.method == "POST":
         blocked = user_model.objects.get(username=blocked_username)
         blocker = request.user
+        user = User.objects.filter(username=blocked).values('id')
+        for i in user:
+            pass
         try:
             Block.objects.add_block(blocker, blocked)
+            Follow.objects.filter(follower=request.user,
+                                       followee=i['id']).delete()
         except AlreadyExistsError as e:
             ctx["errors"] = ["%s" % e]
         else:
@@ -801,11 +969,8 @@ def block_add(request, blocked_username, template_name="account/add.html"):
 
     return render(request, template_name, ctx)
 
-
 @login_required
-def block_remove(
-    request, blocked_username, template_name="account/remove.html"
-):
+def block_remove(request, blocked_username, template_name="account/remove.html"):
     """ Remove a following relationship """
     if request.method == "POST":
         blocked = user_model.objects.get(username=blocked_username)
@@ -814,4 +979,61 @@ def block_remove(
         return redirect("posts:friendship_blocking", username=blocker.username)
 
     return render(request, template_name, {"blocked_username": blocked_username})
+
+@ajax_required
+@require_POST
+@login_required
+def block_unblock(request):
+    blocked = request.POST.get('id')
+    print(blocked)
+    blocked = user_model.objects.get(username=blocked)
+    print(blocked)
+    blocker = request.user
+    print(blocker)
+    user = User.objects.filter(username=blocked).values('id')
+    for i in user:
+        pass
+    action = request.POST.get('action')
+    if blocked and action:
+        try:
+            if action == 'block':
+                try:
+                    Block.objects.add_block(blocker, blocked)
+                    Follow.objects.filter(follower=request.user,
+                                       followee=i['id']).delete()
+                    return JsonResponse({'status':'ok','message':'User Block'})
+                except AlreadyExistsError as e:
+                    return JsonResponse({'status':'error','message':["%s" % e]})
+            else:
+                Block.objects.remove_block(blocker, blocked)
+                return JsonResponse({'status':'ok','message':'User UnBlock'})
+        except User.DoesNotExist:
+            return JsonResponse({'status':'error','message':'refreshss'})
+    return JsonResponse({'status':'error','message':'refresh'})
+
+import json 
+def autocompleteModel(request):
+    if request.is_ajax():
+        q = request.GET.get('term', '').capitalize()
+        # search_qs = Post.objects.filter(title=q)
+        search_qs = Post.published.annotate(similarity=TrigramSimilarity('title', q),).filter(similarity__gt=0.1).order_by('-similarity')
+
+        results = []
+        print(q)
+        for r in search_qs:
+            results.append(r.FIELD)
+        data = json.dumps(results)
+    else:
+        data = 'fail'
+    mimetype = 'application/json'
+    return HttpResponse(data, mimetype)
+
+
+# @cache_page(timeout=60, cache='redis_backend')
+# def redis_cache_list(request):
+#     arr = ['The number is %d' % i for i in range(10)]
+#     time.sleep(5)  # 伪装耗时
+#     return render(request, 'demo/cache_list.html', {'arr': arr})
+
+
 

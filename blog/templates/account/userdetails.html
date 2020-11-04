@@ -68,6 +68,10 @@
     padding: 15px 0;
     color: #424242
 }
+.followss .blockss{
+  display: inline-block;
+  margin-top:-12px
+}
 </style>
 {% comment %} side bar {% endcomment %}
     {% include 'account/sidebar.html'%}
@@ -75,9 +79,10 @@
 <div id="content" class="p-4 p-md-5 pt-5">
   <div class="container profile-page">
     <div class="row">
-        <div class="col-xl-6 col-lg-7 col-md-12">
+        <div class="col-xl-8 col-lg-7 col-md-12">
             <div class="card profile-header">
                 <div class="body">
+                
                   {% for i in profile %}
                     <div class="row">
                         <div class="col-lg-4 col-md-4 col-12">
@@ -85,22 +90,32 @@
                         </div>
                         <div class="col-lg-8 col-md-8 col-12">
                             <h4 class="m-t-0 m-b-0">{{ user.get_full_name }}
-                            <a href="{% url 'posts:user_follow' %}" data-id="{{ user.id }}" data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="follow button">
+                            <a href="{% url 'posts:user_follow' %}" data-id="{{ user.id }}" data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="follow button followss">
                               {% if request.user not in user.followers.all %}
                                   Follow
                               {% else %}
                                   Unfollow
                               {% endif %}
                               </a>
-                            <a href="{% url 'posts:block_add' user.username %}">Block</a>
+                              <a href="{% url 'posts:block_unblock' %}" data-id="{{ user.username }}" data-action="{% if request.user.id in user.blockees.all %}un{% endif %}block" class="block button bl" id="block">
+
+                              {% if request.user.id not in user.blockees.all %}
+                                  Block
+                              {% else %}
+                                  Unblock
+                              {% endif %}
+                              </a>
+                            {% comment %} <a href="{% url 'posts:block_add' user.username %}">Block</a> {% endcomment %}
                             </h4>
                             <h4 class="m-t-0 m-b-0">
                             <a href="{% url "edit" %}">
                             Edit Profile
                             </a>
+                           
                             </h4>
                             <span class="job_post">Ui UX Designer</span>
                             <p>{{ i.bio |slice:'60'}}</p>
+                              {% comment %} <div id='jsondata'></div> {% endcomment %}
                             <div>
                                 <button class="btn btn-primary btn-round">{{total_post}}</button>
                                 {% comment %} <button class="btn btn-primary btn-round btn-simple">Message</button> {% endcomment %}
@@ -298,7 +313,40 @@
             $('span.count1 .total1').text());
           $('span.count1 .total1').text(previous_action == 'follow' ?
           previous_following + 1 : previous_following - 1);
+
         }
+          {% comment %} var div = document.getElementById('jsondata');
+          div.innerHTML = div.innerHTML + data.message; {% endcomment %}
+          alert(data.message)
+      }
+    );
+  });
+  {% comment %} block {% endcomment %}
+  $('#block').click(function(a){
+    a.preventDefault();
+    $.post('{% url "posts:block_unblock" %}',
+      {
+        id: $(this).data('id'),
+        action: $(this).data('action')
+      },
+      function(data){
+        if (data['status'] == 'ok') {
+          var previous_actions = $('#block').data('action');
+
+          // toggle data-action
+          $('#block').data('action',
+            previous_actions == 'block' ? 'unblock' : 'block');
+          // toggle link text
+          $('#block').text(
+            previous_actions == 'block' ? 'Unblock' : 'Block');  
+           $("#block").hide();
+        }
+       alert(data.message)
+
+          {% comment %} var div = document.getElementById('jsondata');
+          div.innerHTML = div.innerHTML + data.message; {% endcomment %}
+        
+
       }
     );
   });

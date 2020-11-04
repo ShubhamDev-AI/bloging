@@ -16,6 +16,9 @@ from django.core.cache import cache
 from posts.exceptions import AlreadyExistsError, AlreadyFriendsError
 from django.db.models import Q
 from django.dispatch import Signal
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+
 
 friendship_request_created = Signal()
 friendship_request_rejected = Signal()
@@ -96,8 +99,14 @@ class Category(models.Model):
     def get_absolute_url(self):
         return reverse('posts:post_list')
 
+class ContentTypeModel(object):
+    
+    def get_content_type(self):
+        """ function to get the content_type object for current model """
+        return ContentType.objects.get_for_model(self)
+
 # post models
-class Post(models.Model):
+class Post(models.Model,ContentTypeModel):
     STATUS_CHOICES = (
         ('draft', 'Draft'),
         ('published', 'Published'),
@@ -124,6 +133,8 @@ class Post(models.Model):
     objects = models.Manager() # The default manager.
     published = PublishedManager() # Our custom manager.
     tags = TaggableManager()
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
 
     class Meta:
         ordering = ('-publish',)
@@ -164,6 +175,28 @@ class Post(models.Model):
 
     def total_dislikes(self):
         return self.dislike.count()
+    
+    # @property
+    # def total_visitors(self):
+    #     return Visitor.objects.filter(post__pk=self.pk).count()
+    def get_content_type(self):
+        """ function to get the content_type object for this model """
+        self.content_type = super().get_content_type()
+        return self.content_type
+
+    def get_visitors(self):
+        """ function to get the queryset of visitors """
+        if hasattr(self, 'content_type'):
+            content_type = self.content_type
+        else:
+            content_type = self.get_content_type()
+        queries = {'content_type': content_type, 'object_id': self.id}
+        return Visitor.objects.published().filter(**queries)
+
+    @property
+    def total_visitors(self):
+        """ count the total of visitors """
+        return self.get_visitors().count()
 
 # comments
 class Comment(MPTTModel):
@@ -769,3 +802,73 @@ class Block(models.Model):
         if self.blocker == self.blocked:
             raise ValidationError("Users cannot block themselves.")
         super(Block, self).save(*args, **kwargs)
+
+# class Visitor(models.Model):
+#     post = models.ForeignKey(Post, on_delete=models.CASCADE,related_name='post_visitor')
+#     ip = models.CharField(max_length=40)
+#     created = models.DateTimeField(auto_now_add=True)
+#     modified = models.DateTimeField(auto_now=True)
+
+#     def __str__(self):
+#         return self.post.title
+
+#     class Meta:
+#         verbose_name = 'Detail Visitor'
+#         verbose_name_plural = 'Visitors'
+#         ordering = ['-created']
+class DefaultManager(models.Manager):
+    """
+    Class to assign as ORM queryset manager,
+    for example usage:
+
+    class ModelName(models.Model):
+        ...
+        objects = DefaultManager()
+
+    >>> ModelName.objects.published()
+    >>> ModelName.objects.deleted()
+    """
+
+    def published(self):
+        """ return queryset for not-deleted objects only. """
+        return self.filter(deleted_at__isnull=True)
+
+    def deleted(self):
+        """ return queryset for deleted objects only. """
+        return self.filter(deleted_at__isnull=False)
+
+    def get_or_none(self, **kwargs):
+        """ function to get the object or None. """
+        try:
+            return self.get(**kwargs)
+        except (Exception, self.model.DoesNotExist):
+            return None
+
+class Visitor(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    headers = models.TextField(_('Headers'), null=True, blank=True)
+    ip_address = models.CharField(_('IP Address'), max_length=40)
+    object_id = models.BigIntegerField()
+    content_type = models.ForeignKey(ContentType, related_name='visitors',
+                                     on_delete=models.CASCADE)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+
+    objects = DefaultManager()
+
+    def __str__(self):
+        message = _('%(ip_address)s visited to %(content_object)s')
+        return message % {'ip_address': self.ip_address,
+                          'content_object': self.content_object}
+
+    class Meta:
+        verbose_name = _('Visitor')
+        verbose_name_plural = _('Visitors')
+        unique_together = ('ip_address', 'object_id', 'content_type')
+        # ordering = ['-created']
+
+
+        
+
+

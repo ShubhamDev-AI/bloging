@@ -5,7 +5,7 @@ from django_filters.views import FilterView
 from django.views.generic import TemplateView
 from django.conf.urls import url
 from .filters import UserFilter
-from .views import UpdatePostView,DeletePostView,AddCategoryView
+from .views import UpdatePostView,DeletePostView,AddCategoryView,DetailPostView
 from django.conf.urls import handler404,handler500
 
 app_name = 'posts'
@@ -13,7 +13,7 @@ app_name = 'posts'
 urlpatterns = [
     
     path('', views.post_list, name='post_list'),
-    path('<int:id>/', views.post_detail, name='post_detail'),
+    url('details/(?P<pk>\d+)/$', DetailPostView.as_view(), name='post_detail'),
     path('<int:post_id>/share/', views.post_share, name='post_share'),
     path('feed/', LatestPostsFeed(), name='post_feed'),
     path('search/', views.post_search, name='post_search'),
@@ -74,6 +74,9 @@ urlpatterns = [
         views.block_remove,
         name="block_remove",
     ),
+    path('users/block/user/', views.block_unblock, name='block_unblock'),
+    url(r'^ajax_calls/search/', views.autocompleteModel,name="ajax_autocomplete"),
+
 
 
 ]

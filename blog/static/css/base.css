@@ -206,7 +206,7 @@ ul.messages li a.close {
     overflow:auto;
 }
 
-a.like, a.follow { float:right; margin-top:-8px; }
+a.like, a.follow { display: inline-block; margin-top:-8px; }
 
 #image-list { overflow:auto; }
 #image-list .image {

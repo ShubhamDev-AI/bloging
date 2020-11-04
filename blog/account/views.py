@@ -217,14 +217,5 @@ class VerificationView(View):
         return redirect('login')
 
 
-def get_ip(request):
-    try:
-        x_foward = request.META.get("HTTP_X_FOWARDED_FOR")
-        if x_foward:
-            ip = x_foward.split(",")[0]
-        else:
-            ip = request.META.get("REMOTE_ADDR")
-    except:
-        ip = '127.0.0.1'
-    return ip
+
 

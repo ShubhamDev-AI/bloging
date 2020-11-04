@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from django.contrib import admin
-from .models import Post, Comment,Category,Watchlater,History,Block, Follow, Friend, FriendshipRequest
+from .models import Post, Comment,Category,Watchlater,History,Block, Follow,Visitor, Friend, FriendshipRequest
 
 
 admin.site.register(Category)
@@ -63,6 +63,14 @@ class WatchAdmin(admin.ModelAdmin):
     search_fields= ('hist_id','user','post_hist_id')
     list_per_page = 20
     list_max_show_all = 8
-    
+
+@admin.register(Visitor) 
+class VisitorAdmin(admin.ModelAdmin):
+    list_display= ('id','headers','ip_address','object_id','content_type') 
+    list_filter =('content_type','ip_address','object_id')
+    search_fields= ('content_type','ip_address','object_id')
+    list_per_page = 50
+    list_max_show_all = 8
+
 
 

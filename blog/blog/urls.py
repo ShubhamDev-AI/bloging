@@ -1,3 +1,4 @@
+import debug_toolbar
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
@@ -11,6 +12,15 @@ sitemaps = {
     'posts': PostSitemap,
 }
 
+from django.conf.urls import (
+    handler400, handler403, handler404, handler500
+)
+handler400 = 'posts.views.handler400'
+handler403 = 'posts.views.handler403'
+handler404 = 'posts.views.handler404'
+handler500 = 'posts.views.handler500'
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('account/', include('account.urls')),
@@ -21,7 +31,9 @@ urlpatterns = [
 
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps},
             name='django.contrib.sitemaps.views.sitemap'),
-    path('', include('pwa.urls'))
+    path('', include('pwa.urls')),
+    path('__debug__/', include(debug_toolbar.urls)),
+
 
 ]
 if settings.DEBUG:
