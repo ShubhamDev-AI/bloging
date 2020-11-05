@@ -108,10 +108,11 @@
                             {% comment %} <a href="{% url 'posts:block_add' user.username %}">Block</a> {% endcomment %}
                             </h4>
                             <h4 class="m-t-0 m-b-0">
+                          {% if user.id == request.user.id %}
                             <a href="{% url "edit" %}">
                             Edit Profile
                             </a>
-                           
+                          {% endif %}
                             </h4>
                             <span class="job_post">Ui UX Designer</span>
                             <p>{{ i.bio |slice:'60'}}</p>

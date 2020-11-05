@@ -76,6 +76,10 @@ urlpatterns = [
     ),
     path('users/block/user/', views.block_unblock, name='block_unblock'),
     url(r'^ajax_calls/search/', views.autocompleteModel,name="ajax_autocomplete"),
+    # ajax
+    path('posts_list/', views.post_listss, name='post_lists'),
+
+
 
 
 

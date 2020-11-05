@@ -1035,5 +1035,36 @@ def autocompleteModel(request):
 #     time.sleep(5)  # 伪装耗时
 #     return render(request, 'demo/cache_list.html', {'arr': arr})
 
+# crud ajax
+def post_listss(request):
+    posts = Post.objects.filter(author=request.user.id)
+    paginator = Paginator(posts, 3)
+    # 获取 url 中的页码
+    page = request.GET.get('page')
+    # 将导航对象相应的页码内容返回给 articles
+    posts = paginator.get_page(posts)
+    # 需要传递给模板（templates）的对象
+    return render(request, 'account/ajax_post_list.html', {'posts': posts})
 
+# from django.template.loader import render_to_string
 
+# def post_create(request):
+#     data = dict()
+
+#     if request.method == 'POST':
+#         form = Form(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             data['form_is_valid'] = True
+#         else:
+#             data['form_is_valid'] = False
+#     else:
+#         form = PostForm()
+
+#     context = {'form': form}
+#     print('kkkkkkkkk',context)
+#     data['html_form'] = render_to_string('account/ajax_partial_post_create.html',
+#     context,
+#     request=request
+#     )
+#     return JsonResponse(data)

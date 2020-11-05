@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% block title %}All Your Posts{% endblock %}
+
+{% block content %}
+<style>
+.table-responsive {
+    margin: 30px 0;
+}
+.table-wrapper {
+    min-width: 1000px;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.05);
+}
+.table-title {
+    font-size: 15px;
+    padding-bottom: 10px;
+    margin: 0 0 10px;
+    min-height: 45px;
+}
+.table-title h2 {
+    margin: 5px 0 0;
+    font-size: 24px;
+}
+.table-title select {
+    border-color: #ddd;
+    border-width: 0 0 1px 0;
+    padding: 3px 10px 3px 5px;
+    margin: 0 5px;
+}
+.table-title .show-entries {
+    margin-top: 7px;
+}
+.search-box {
+    position: relative;
+    float: right;
+}
+.search-box .input-group {
+    min-width: 200px;
+    position: absolute;
+    right: 0;
+}
+.search-box .input-group-addon, .search-box input {
+    border-color: #ddd;
+    border-radius: 0;
+}
+.search-box .input-group-addon {
+    border: none;
+    border: none;
+    background: transparent;
+    position: absolute;
+    z-index: 9;
+}
+.search-box input {
+    height: 34px;
+    padding-left: 28px;		
+    box-shadow: none !important;
+    border-width: 0 0 1px 0;
+}
+.search-box input:focus {
+    border-color: #3FBAE4;
+}
+.search-box i {
+    color: #a0a5b1;
+    font-size: 19px;
+    position: relative;
+    top: 8px;
+}
+table.table tr th, table.table tr td {
+    border-color: #e9e9e9;
+}
+table.table th i {
+    font-size: 13px;
+    margin: 0 5px;
+    cursor: pointer;
+}
+table.table td:last-child {
+    width: 130px;
+}
+table.table td a {
+    color: #a0a5b1;
+    display: inline-block;
+    margin: 0 5px;
+}
+table.table td a.view {
+    color: #03A9F4;
+}
+table.table td a.edit {
+    color: #FFC107;
+}
+table.table td a.delete {
+    color: #E34724;
+}
+table.table td i {
+    font-size: 19px;
+}    
+.pagination {
+    float: right;
+    margin: 0 0 5px;
+}
+.pagination li a {
+    border: none;
+    font-size: 13px;
+    min-width: 30px;
+    min-height: 30px;
+    padding: 0 10px;
+    color: #999;
+    margin: 0 2px;
+    line-height: 30px;
+    border-radius: 30px !important;
+    text-align: center;
+}
+.pagination li a:hover {
+    color: #666;
+}	
+.pagination li.active a {
+    background: #03A9F4;
+}
+.pagination li.active a:hover {        
+    background: #0397d6;
+}
+.pagination li.disabled i {
+    color: #ccc;
+}
+.pagination li i {
+    font-size: 16px;
+    padding-top: 6px
+}
+.hint-text {
+    float: left;
+    margin-top: 10px;
+    font-size: 13px;
+}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+{% comment %} side bar {% endcomment %}
+    {% include 'account/sidebar.html'%}
+{% comment %} end side bar {% endcomment %}
+<div id="content" class="p-4 p-md-5 pt-5">
+<div class="container-xl">
+    <div class="table-responsive">
+        <div class="table-wrapper">			
+            <div class="table-title">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="show-entries">
+
+                                <a href="{% url 'posts:post-upload'%}"class="btn btn-primary">
+                                    Upload Post
+                                </a>
+                        </div>						
+                    </div>
+                    <div class="col-sm-4">
+                        
+                        <h2 class="text-center">Posts <b>Details</b></h2>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="search-box">
+                            <div class="input-group">
+                                <span class="input-group-addon"><i class="material-icons">&#xE8B6;</i></span>
+                                <input type="text" class="form-control" placeholder="Search&hellip;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        
+                        <th>Title<i class="fa fa-sort"></i></th>
+                        <th>Slug</th>
+                        <th>Author<i class="fa fa-sort"></i></th>
+                        <th>Avatar</th>
+                        <th>Body</th>
+                        <th>Category <i class="fa fa-sort"></i></th>
+                        <th>status</th>
+                        <th>tags</th>
+                    
+                    </tr>
+                </thead>
+                <tbody>
+                   {% for post in posts %}
+                    <tr>
+                        <td>{{ post.title }}</td>
+                        <td>{{ post.slug }}</td>
+                        <td>{{ post.author }}</td>
+                        <td>{{ post.avatar }}</td>
+                        <td>{{ post.body |slice:'200' }}</td>
+                        <td>{{ post.category }}</td>
+                        <td>{{ post.status }}</td>
+                        <td>{{ post.tags }}</td>
+                        <td>
+                            <a href="{% url   'posts:post_detail' post.id %}" class="view" title="View" data-toggle="tooltip"><i class="material-icons">&#xE417;</i></a>
+                        {% if user.id == post.author.id %}
+                            <a href="{% url 'posts:update_post' post.pk %}" class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
+                            <a href="{% url 'posts:delete_post' post.pk %}" class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
+                        {% endif %}
+                        </td>
+                    </tr>  
+                    {% empty %}
+                    <tr>
+                    <td colspan="7" class="text-center bg-warning">No post</td>
+                    </tr>
+                    {% endfor %}      
+                </tbody>
+            </table>
+            <div class="clearfix">
+                <div class="hint-text">Showing <b>5</b> out of <b>25</b> entries</div>
+                <ul class="pagination">
+                   {% if posts.has_previous %}
+                    <li class="page-item disabled">
+                    <a href="?page=1" class="btn btn-success">&laquo; 1</a>
+                    <span>...</span>
+                    <a href="?page={{ posts.previous_page_number }}" 
+                       class="btn btn-secondary"
+                    >
+                        {{ posts.previous_page_number }}
+                    </a>
+                    </li>
+                   {% endif %}
+                    <li class="page-item"><span class="current btn btn-danger btn-lg">
+                        {{ posts.number }}</span>
+                    </li>
+                 {% if posts.has_next %}
+                    <li class="page-item">
+                        <a href="?page={{ posts.next_page_number }}"
+                       class="btn btn-secondary"
+                    >
+                        {{ posts.next_page_number }}
+                    </a>
+                    <span>...</span>
+                    <a href="?page={{ posts.paginator.num_pages }}"
+                       class="btn btn-success"
+                    >
+                        {{ posts.paginator.num_pages }} &raquo;
+                    </a>
+                {% endif %}
+
+                    {% comment %} <a href="#" class="page-link">Next</a> {% endcomment %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>        
+</div>     
+
+  
+   
+
+</div>
+<script>
+$(document).ready(function(){
+	$('[data-toggle="tooltip"]').tooltip();
+	// Animate select box length
+	var searchInput = $(".search-box input");
+	var inputGroup = $(".search-box .input-group");
+	var boxWidth = inputGroup.width();
+	searchInput.focus(function(){
+		inputGroup.animate({
+			width: "300"
+		});
+	}).blur(function(){
+		inputGroup.animate({
+			width: boxWidth
+		});
+	});
+});
+
+   $(function () {
+
+  /* Functions */
+
+  var loadForm = function () {
+    var btn = $(this);
+    $.ajax({
+      url: btn.attr("data-url"),
+      type: 'get',
+      dataType: 'json',
+      beforeSend: function () {
+        $("#modal-post .modal-content").html("");
+        $("#modal-post").modal("show");
+      },
+      success: function (data) {
+        $("#modal-post .modal-content").html(data.html_form);
+      }
+    });
+  };
+
+  var saveForm = function () {
+    var form = $(this);
+    $.ajax({
+      url: form.attr("action"),
+      data: form.serialize(),
+      type: form.attr("method"),
+      dataType: 'json',
+      success: function (data) {
+        if (data.form_is_valid) {
+          $("#book-table tbody").html(data.html_post_list);
+          $("#modal-post").modal("hide");
+        }
+        else {
+          $("#modal-post .modal-content").html(data.html_form);
+        }
+      }
+    });
+    return false;
+  };
+
+
+  /* Binding */
+
+  // Create book
+  $(".js-create-post").click(loadForm);
+  $("#modal-post").on("submit", ".js-post-create-form", saveForm);
+
+  // Update book
+  $("#post-table").on("click", ".js-update-post", loadForm);
+  $("#modal-post").on("submit", ".js-post-update-form", saveForm);
+
+  // Delete book
+  $("#post-table").on("click", ".js-delete-post", loadForm);
+  $("#modal-post").on("submit", ".js-post-delete-form", saveForm);
+
+});
+
+var name = "{{ user.id }}";
+document.getElementById("elder").value = name;
+
+</script>
+{% endblock%}
