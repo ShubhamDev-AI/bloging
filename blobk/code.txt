@@ -219,3 +219,80 @@ trendfour = trendingwithdata[2:7]
     {% set_disqus_title object.title %}
     {% disqus_show_comments %}
     <!-- disqus_dev -->
+
+{% comment %} function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color; }{% endcomment %}
+
+
+Yes, there is, and its even named range.
+
+Example
+
+import datetime
+start_date = datetime.date(2005, 1, 1)
+end_date = datetime.date(2005, 3, 31)
+User.objects.filter(last_login__range=(start_date, end_date))
+Of for the last week
+
+today = datetime.date.today()
+last_week = today - datetime.timedelta(days=7)
+User.objects.filter(last_login__range=(last_week, today))
+
+
+A quick solution would be to simply add a day, so the date range includes up to the last minute of today, but not more (also update last_week).
+
+today = datetime.date.today() + datetime.timedelta(days=1)
+last_week = datetime.date.today() - datetime.timedelta(days=7)
+User.objects.filter(last_login__range=(last_week, today))
+
+Get List of Current Users
+First off, this assumes that settings.py has the following:
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+from django.contrib.auth.models import User
+from django.contrib.sessions.models import Session
+from django.utils import timezone
+
+def get_current_users():
+    active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+    user_id_list = []
+    for session in active_sessions:
+        data = session.get_decoded()
+        user_id_list.append(data.get('_auth_user_id', None))
+    # Query all logged in users based on id list
+    return User.objects.filter(id__in=user_id_list)
+
+Now, you can use the function get_current_users() anywhere to get a QuerySet of users. This means that you can do things like:
+
+queryset = get_current_users()
+print(queryset)
+print(queryset.exists())
+print(queryset.count())
+
+
+
+get_retained_users_per_month:
+
+TODO: Describe
+
+get_recovered_users_per_month:
+
+TODO: Describe
+
+get_churned_users_per_month:
+
+TODO: Describe
+
+get_monthly_active_users:
+
+TODO: Describe
+
+get_daily_active_users:
+
+TODO: Describe

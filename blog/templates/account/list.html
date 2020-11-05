@@ -6,6 +6,11 @@
 {% endblock title %}
 
 {% block content %}
+<style>
+.not {
+    text:strong;
+}
+</style>
 {% comment %} side bar {% endcomment %}
     {% include 'account/sidebar.html'%}
 {% comment %} end side bar {% endcomment %}
@@ -15,6 +20,8 @@
     </div>
     <!-- 未读通知列表 -->
     <div class="row mt-2 ml-4">
+        <div class="col-md-6">
+        <p class="not">Likes,Comments</p>
         <ul class="list-group">
             {% for notice in notices %}
                 <li class="list-group-item" id="notice_link">
@@ -35,9 +42,14 @@
                 {% endif %}
             {% endfor %}
         </ul>
-         
+         </div>
+         <div class="col-md-6">
+          <p class="not">Follow and UnFollow</p>
+
+         {% include 'account/follow_notfication.html' %}
+         </div>
     </div>
-    {% include 'account/follow_notfication.html' %}
+    
 </div>
 
 <style>

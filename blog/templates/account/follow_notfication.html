@@ -1,7 +1,4 @@
-<div class="row mt-2 ml-4">
         <ul class="list-group">
-         <p>Notification of follow and unfollow</p>
-
             {% for notice in notices %}
                 <li class="list-group-item" id="notice_link">
                 {% if notice.verb == "like to your post" %}
@@ -22,7 +19,7 @@
             {% endfor %}
         </ul>
     </div>
-</div>
+
 
 <style>
     #notice_link a:link {

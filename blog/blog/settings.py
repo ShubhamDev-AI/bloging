@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'posts.apps.PostsConfig',
     'actions.apps.ActionsConfig',
     'notice.apps.NoticeConfig' , 
+    'active_users.apps.ActiveUsersConfig',
     # third party app
     'taggit',
     'social_django',
@@ -68,6 +69,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'active_users.middleware.ActiveUsersMiddleware',
 
 ]
 DEBUG_TOOLBAR_PANELS = [
