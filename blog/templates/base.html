@@ -75,6 +75,10 @@
     .toTop-arrow:focus {
         outline: none;
     }
+    .dark-mode {
+  background-color: black;
+  color: white;
+}
  </style>
     
 </head>
@@ -155,6 +159,8 @@
                           <a class="dropdown-item" href="{% url "posts:friendship_blocking" request.user.username %}">Unblock User</a>
                           <a class="dropdown-item" href="{% url 'posts:post_lists' %}">All Your Posts's</a>
                           <a class="dropdown-item" href="{% url "logout" %}">Log Out</a>
+                          <button class="dropdown-item" onclick="myFunction()">Toggle dark mode</button>
+
                           {% comment %} notification {% endcomment %}
                        <a class = "dropdown-item"  the href = "{% url "notice:list" %}"> Notify
                         {% if unread_count %}
@@ -327,6 +333,12 @@ $(".django-ckeditor-widget").removeAttr('style');
         xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));  
     }  
 });  
+
+
+function myFunction() {
+   var element = document.body;
+   element.classList.toggle("dark-mode");
+}
 
 
 </script>

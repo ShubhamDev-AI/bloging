@@ -88,6 +88,7 @@ class RegistrationView(View):
         username = request.POST['username']
         email = request.POST['email']
         password = request.POST['password']
+        confirm_password =request.POST['confirm_password']
 
         context = {
             'fieldValues': request.POST
@@ -95,8 +96,11 @@ class RegistrationView(View):
 
         if not User.objects.filter(username=username).exists():
             if not User.objects.filter(email=email).exists():
-                if len(password) < 6:
-                    messages.error(request, 'Password too short')
+                if password != confirm_password:
+                    if len(password) < 6:
+                        messages.error(request, 'Password too short')
+                        return render(request, 'account/register.html', context)
+                    messages.error(request, 'Password Not Match')
                     return render(request, 'account/register.html', context)
 
                 user = User.objects.create_user(username=username, email=email)
@@ -206,6 +210,7 @@ class VerificationView(View):
             if user.is_active:
                 return redirect('login')
             user.is_active = True
+            user.Profile.signup_confirmation = True
             user.save()
 
             messages.success(request, 'Account activated successfully')

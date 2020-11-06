@@ -142,6 +142,7 @@ def search(request):
     return render(request, 'account/user_filter.html', {'filter': user_filter})
 
 # -----------------------------------------
+@method_decorator(login_required, name='dispatch')
 class DetailPostView(generic.DetailView):
     model = Post
     template_name = 'account/details.html'
@@ -919,6 +920,7 @@ def follower_remove(request, followee_username, template_name="account/remove.ht
     return render(request, template_name, {"followee_username": followee_username})
 
 # ----------------block -----------unblock--------------------------------------
+@login_required
 def blocking(request, username, template_name="account/blockers_list.html"):
     """ List this user's followers """
     user = get_object_or_404(user_model, username=username)
@@ -933,6 +935,7 @@ def blocking(request, username, template_name="account/blockers_list.html"):
         },
     )
 
+@login_required
 def blockers(request, username, template_name="account/blocking_list.html"):
     """ List who this user follows """
     user = get_object_or_404(user_model, username=username)
@@ -1036,6 +1039,7 @@ def autocompleteModel(request):
 #     return render(request, 'demo/cache_list.html', {'arr': arr})
 
 # crud ajax
+@login_required
 def post_listss(request):
     posts = Post.objects.filter(author=request.user.id)
     paginator = Paginator(posts, 3)

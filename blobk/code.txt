@@ -296,3 +296,16 @@ TODO: Describe
 get_daily_active_users:
 
 TODO: Describe
+
+Django query User growth by month
+
+from django.contrib.auth.models import User
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+
+
+User.objects.all() \
+    .annotate(month=TruncMonth("date_joined")) \
+    .values("month") \
+    .annotate(c=Count("id")) \
+    .order_by("-month")
