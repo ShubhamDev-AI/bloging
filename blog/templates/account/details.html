@@ -190,21 +190,21 @@
                     <button type="submit" name="post_id" value="{{post.id}}" class="btn btn-primary btm-sm">like 
                     </button>
                 {% endif %}
-                    Likes {{total_likes}}
+                    {% comment %} Likes {{total_likes}} {% endcomment %}
                 </form>
 
             </div>
-            <div class="col-lg-6">
-                         <form action="{% url 'posts:dislike_post' post.pk %}" method="POST">
+            <div class="col-lg-6" >
+              <form action="{% url 'posts:dislike_post' post.pk %}" method="POST">
                 {% csrf_token %}
                 {% if disliked %}
-                    <button type="submit" name="post_id" value="{{post.id}}" class="btn btn-danger btm-sm">UnDislike 
+                    <button type="submit" name="post_id" value="{{post.id}}" class="btn btn-danger btm-sm" style="float:right;">UnDislike 
                     </button>
                 {% else %}
-                    <button type="submit" name="post_id" value="{{post.id}}" class="btn btn-primary btm-sm">Dislike 
+                    <button type="submit" name="post_id" value="{{post.id}}" class="btn btn-primary btm-sm" style="float:right;">Dislike 
                     </button>
                 {% endif %}
-                    DisLikes {{total_dislikes}}
+                    {% comment %} DisLikes {{total_dislikes}} {% endcomment %}
                 </form>
             </div>
         </div>
@@ -224,9 +224,9 @@
                     </div>
                     {% endif %}
                 </div>
-                <div class="col-lg-6">
+                <div class="col-lg-6" >
                     {% if pre_article %}
-                     <div class="col-auto">
+                     <div class="col-auto" style="float:right;">
                         <a  href="{{ pre_article.get_absolute_url }}" 
                               class="btn btn-info" 
                          >
