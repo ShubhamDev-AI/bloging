@@ -38,7 +38,7 @@ urlpatterns = [
     path('dislikes/<int:pk>/',views.DisLikeView,name='dislike_post'),
     # history watch later
     path('watchlater', views.watchlater, name='watchlater'),
-    path('history', views.history, name='history'),
+    path('history/', views.history, name='history'),
     path('history/delete/<int:id>/',views.DeleteHistory, name='history_delete'),
     path('history/delete/post/<int:id>/<int:user>',views.DeletePerHistory, name='history_Per_delete'),
     path('watchlater/delete/<int:id>/',views.DeleteWatchLater, name='watchlater_delete'),

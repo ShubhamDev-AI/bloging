@@ -89,6 +89,8 @@ class RegistrationView(View):
         email = request.POST['email']
         password = request.POST['password']
         confirm_password =request.POST['confirm_password']
+        first_name = request.POST['first_name']
+        last_name=request.POST['last_name']
 
         context = {
             'fieldValues': request.POST
@@ -103,7 +105,7 @@ class RegistrationView(View):
                     messages.error(request, 'Password Not Match')
                     return render(request, 'account/register.html', context)
 
-                user = User.objects.create_user(username=username, email=email)
+                user = User.objects.create_user(username=username,first_name=first_name,last_name=last_name, email=email)
                 user.set_password(password)
                 user.is_active = False
                 user.save()
@@ -131,7 +133,7 @@ class RegistrationView(View):
                     [email],
                 )
                 email.send(fail_silently=False)
-                messages.success(request, 'Account successfully created')
+                messages.success(request, ' Email Sent Activate Your Account')
                 return render(request, 'account/register.html')
 
         return render(request, 'account/register.html')
@@ -210,10 +212,10 @@ class VerificationView(View):
             if user.is_active:
                 return redirect('login')
             user.is_active = True
-            user.Profile.signup_confirmation = True
+            # user.Profile.signup_confirmation = True
             user.save()
 
-            messages.success(request, 'Account activated successfully')
+            messages.success(request, 'Account activated successfully Login')
             return redirect('login')
 
         except Exception as ex:

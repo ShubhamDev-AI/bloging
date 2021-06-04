@@ -1,14 +1,35 @@
 {% load thumbnail %}
-<ul>
+{% load static %}
+<link href="{% static "css/follow-block.css" %}" rel="stylesheet">
+
+<div class="container">
+  <div class="row ng-scope">   
+    <div class="col-md-9 col-md-pull-3">
+
     {% for f in blocking %}
-    <li>
     {% if f.first_name or f.last_name %}
-    <a href="{% url 'posts:user_detail' f.username %}">{{ f.first_name }} {{ f.last_name }}</a>
-    <img src="{% thumbnail f.profile.photo 180x180 %}" class="user-detail">
-    <a href="{% url 'posts:block_remove' f.username %}">Unblock</a>
-</li>
+       <section class="search-result-item">
+            <a class="image-link" href="#"><img class="image" src="{% thumbnail f.profile.photo 180x180 %}">
+            </a>
+            <div class="search-result-item-body">
+                <div class="row">
+                    <div class="col-sm-9">
+                        <h4 class="search-result-item-heading"><a href="{% url 'posts:user_detail' f.username %}">{{ f.first_name }} {{ f.last_name }}</a></h4>
+                        <h4 class="info">@{{f.username}}</h4>
+                        <p class="description">{{f.profile.bio}}</p>
+                    </div>
+                    <div class="col-sm-3 text-align-center">
+                        {% comment %} <p class="value3 mt-sm">$2, 400</p>
+                        <p class="fs-mini text-muted">PER MONTH</p> {% endcomment %}
+                        <a class="btn btn-info btn-sm" href="{% url 'posts:block_remove' f.username %}">UnBlock</a>
+                    </div>
+                </div>
+            </div>
+        </section>
     {% else %}
-    <li>{{ f.username }}</li>
+    {{ f.username }}
     {% endif %}
     {% endfor %}
-</ul>
+</div>
+</div>
+</div>

@@ -90,9 +90,6 @@ def visitor_counter(request, content_type, object_id):
 
     return dict(client_ip=client_ip, total_visitors=visitors.count())
 
-# -------------------------------------------
-
-
 # -------------- trending algorithm ---------------------------------------
 def trendingpostfunction():
     rdata = Post.objects.filter(publish__gte=long_ago)
@@ -623,7 +620,7 @@ def history(request):
         history = History(user=user, post_hist_id=post_id)
         history.save()
 
-        return redirect(f"/posts/{post_id}")
+        return redirect(f"/posts/details/{post_id}")
 
     history = History.objects.filter(user=request.user)
     ids = []
@@ -772,7 +769,7 @@ def handler403(request,exception):
     return response
 
 
-# -----------------------------follow and unfollow --------------------------------
+
 # follow and u follow
 @login_required
 def user_list(request):
@@ -816,13 +813,12 @@ def user_detail(request, username):
 @login_required
 def user_follow(request):
     user_id = request.POST.get('id')
-    action = request.POST.get('action')
-    j = {'blocked':''}
-    blockeds = Block.objects.all()
-    blocked = Block.objects.filter(blocked=user_id).values('blocked')
-    for j in blocked:
+    user_names =User.objects.filter(id=user_id).values_list('username',flat=True)
+    for user_name in user_names:
         pass
-    if user_id == str(j['blocked']):
+    action = request.POST.get('action')
+    other_user =User.objects.get(username=user_name)
+    if Block.objects.is_blocked(request.user,other_user) == True:
         return JsonResponse({'status':'error','message':'Unblock user first'})
     else:
         if user_id and action:
@@ -1030,13 +1026,6 @@ def autocompleteModel(request):
         data = 'fail'
     mimetype = 'application/json'
     return HttpResponse(data, mimetype)
-
-
-# @cache_page(timeout=60, cache='redis_backend')
-# def redis_cache_list(request):
-#     arr = ['The number is %d' % i for i in range(10)]
-#     time.sleep(5)  # 伪装耗时
-#     return render(request, 'demo/cache_list.html', {'arr': arr})
 
 # crud ajax
 @login_required

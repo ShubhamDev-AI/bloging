@@ -172,7 +172,7 @@
                 </span>
             <h2 class="card-title">
                     {% if user.is_authenticated %}
-                <form action="/posts/history" method="POST">{% csrf_token %}
+                <form action="/posts/history/" method="POST">{% csrf_token %}
                     <input type="hidden" name="post_id" value="{{article.id}}">
                         <a href="{% url 'posts:post_detail' article.id %}"
                            style="color: black;">
@@ -191,7 +191,7 @@
                         {{ article.body|slice:'300' }}...
             </p>
             {% if user.is_authenticated %}
-                <form action="/posts/history" method="POST">{% csrf_token %}
+                <form action="/posts/history/" method="POST">{% csrf_token %}
                     <input type="hidden" name="post_id" value="{{article.id}}">
                         <a href="{% url 'posts:post_detail' article.id %}"
                            style="color: black;">

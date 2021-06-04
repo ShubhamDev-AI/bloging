@@ -10,8 +10,7 @@
 {% progressive_web_app_meta %}
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>{% block title %}{% endblock %}</title>
-<script type="text/javascript" src="{% static "ckeditor/config.js"%}"></script>
-
+{% comment %} <script type="text/javascript" src="{% static "ckeditor/config.js"%}"></script> {% endcomment %}
 <link href="{% static "css/base.css" %}" rel="stylesheet">
 <link href="{% static "css/styles.css" %}" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900" rel="stylesheet">
@@ -20,16 +19,24 @@
 <script src="{% static 'ckeditor/ckeditor/plugins/prism/lib/prism/prism_patched.min.js' %}"></script>
 <link rel="stylesheet" href="{% static 'prism/prism.css' %}">
 <script src="{% static "js/jquery.min.js"%}"></script>
-<script type="text/javascript" src="{% static "ckeditor/ckeditor/ckeditor.js"%}"></script>
-<script type="text/javascript" src="{% static "ckeditor/ckeditor/adapters/jquery.js"%}"></script>
-
+{% comment %} <script type="text/javascript" src="{% static "ckeditor/ckeditor/ckeditor.js"%}"></script>
+<script type="text/javascript" src="{% static "ckeditor/ckeditor/adapters/jquery.js"%}"></script> {% endcomment %}
+ {% comment %} <script type="text/javascript">
+$(function() {
+    $('#card-text').ckeditor({
+        toolbar: 'Full',
+        enterMode : CKEDITOR.ENTER_BR,
+        shiftEnterMode: CKEDITOR.ENTER_P
+    });
+});
+</script>  {% endcomment %}
 
 <style >
     .navbar {
       background-color:#866ec7;
     }
     input[type=text] {
-    
+    border: 4px solid #8842d5;
     border-radius: 5px;  
 } 
 .bs-example {
@@ -95,10 +102,10 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <div class="navbar-nav">
             <div class="custom-menu">
-			<button type="button" id="sidebarCollapse" class="btn btn-primary">
+			       <button type="button" id="sidebarCollapse" class="btn btn-primary">
 	          <i class="fa fa-bars"></i>
 	          <span class="sr-only">Toggle Menu</span>
-	        </button>
+	          </button>
           </div>
 
             <a href="{% url "posts:post_list" %}" class="nav-item nav-link">Post</a>
@@ -196,7 +203,7 @@
   {% endif %}
 {% comment %} side bar {% endcomment %}
 
-<div class="wrapper d-flex align-items-stretch moving">
+<div class="wrapper d-flex align-items-stretch moving" style="background-color: #eee;">
     {% block content %}
     {% endblock %}
   </div>
@@ -335,10 +342,10 @@ $(".django-ckeditor-widget").removeAttr('style');
 });  
 
 
-function myFunction() {
+{% comment %} function myFunction() {
    var element = document.body;
    element.classList.toggle("dark-mode");
-}
+} {% endcomment %}
 
 
 </script>

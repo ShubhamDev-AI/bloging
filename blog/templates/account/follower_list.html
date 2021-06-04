@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load thumbnail %}
+{% load static %}
 {% block title %}Followers{% endblock %}
+<link href="{% static "css/follow-block.css" %}" rel="stylesheet">
 
 {% block content %}
 {% comment %} side bar {% endcomment %}
@@ -9,8 +11,13 @@
 <div id="content" class="p-4 p-md-5 pt-5">
 {% load frienshiptag %}
 <h1>Followers</h1>
-<p>{{request.user.username}}</p>
-{% get_by_name friendship_context_object_name as var %}
-{% followers var %}
+<div class="container">
+  <div class="row ng-scope">   
+    <div class="col-md-9 col-md-pull-3">
+       {% get_by_name friendship_context_object_name as var %}
+       {% followers var %}
+</div>
+</div>
+</div>
 </div>
 {% endblock %}

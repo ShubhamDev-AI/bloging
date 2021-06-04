@@ -97,14 +97,14 @@
                                   Unfollow
                               {% endif %}
                               </a>
-                              <a href="{% url 'posts:block_unblock' %}" data-id="{{ user.username }}" data-action="{% if request.user.id in user.blockees.all %}un{% endif %}block" class="block button bl" id="block">
-
+                              <a href="{% url 'posts:block_unblock' %}" data-id="{{ user.username }}"data-action="{% if request.user.id in user.blockees.all %}un{% endif %}block" class="block button bl" id="block">
                               {% if request.user.id not in user.blockees.all %}
-                                  Block
+                                Block
                               {% else %}
-                                  Unblock
+                                Unblock
                               {% endif %}
                               </a>
+                              
                             {% comment %} <a href="{% url 'posts:block_add' user.username %}">Block</a> {% endcomment %}
                             </h4>
                             <h4 class="m-t-0 m-b-0">
@@ -291,6 +291,7 @@
       {
         id: $(this).data('id'),
         action: $(this).data('action')
+        
       },
       function(data){
         if (data['status'] == 'ok') {

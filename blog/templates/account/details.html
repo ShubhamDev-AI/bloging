@@ -16,104 +16,33 @@
       })
 </script>
 {% endif %}
-<style>
-.sav{
-    float:right;
-}
-.sav-edit{
-    float:right;
-    padding-right:10px;
+    <style>
+                  .sav{
+                      float:right;
+                  }
+                  .sav-edit{
+                      float:right;
+                      padding-right:10px;
 
-}
-.sav-delete{
-    float:right;
-    padding-right:10px;
+                  }
+                  .sav-delete{
+                      float:right;
+                      padding-right:10px;
 
-}
-.sh-blog-single-mete{
-    border-top: 1px solid #eaeaea;
-    border-bottom: 1px solid #eaeaea;
-    padding: 26px 0 24px;
-    margin: 0;
-}
-.kl {
-    width: inherit;
-    height: inherit;
-}
+                  }
+                  .sh-blog-single-mete{
+                      border-top: 1px solid #eaeaea;
+                      border-bottom: 1px solid #eaeaea;
+                      padding: 26px 0 24px;
+                      margin: 0;
+                  }
+                  .kl {
+                      width: inherit;
+                      height: inherit;
+                  }
 
-/* The Modal (background) */
-.modal {
-  display: none; /* Hidden by default */
-  position: fixed; /* Stay in place */
-  z-index: 1; /* Sit on top */
-  padding-top: 100px; /* Location of the box */
-  left: 0;
-  top: 0;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
-  background-color: rgb(0,0,0); /* Fallback color */
-  background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
-}
-
-/* Modal Content (Image) */
-.modal-content {
-  margin: auto;
-  display: block;
-  width: 80%;
-  max-width: 700px;
-}
-
-/* Caption of Modal Image (Image Text) - Same Width as the Image */
-#caption {
-  margin: auto;
-  display: block;
-  width: 80%;
-  max-width: 700px;
-  text-align: center;
-  color: #ccc;
-  padding: 10px 0;
-  height: 150px;
-}
-
-/* Add Animation - Zoom in the Modal */
-.modal-content, #caption {
-  animation-name: zoom;
-  animation-duration: 0.6s;
-}
-
-@keyframes zoom {
-  from {transform:scale(0)}
-  to {transform:scale(1)}
-}
-
-/* The Close Button */
-.close {
-  position: absolute;
-  top: 15px;
-  right: 35px;
-  color: #f1f1f1;
-  font-size: 40px;
-  font-weight: bold;
-  transition: 0.3s;
-}
-
-.close:hover,
-.close:focus {
-  color: #bbb;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-/* 100% Image Width on Smaller Screens */
-@media only screen and (max-width: 700px){
-  .modal-content {
-    width: 100%;
-  }
-}
-
-
-</style>
+                  
+  </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 {% comment %} side bar {% endcomment %}
     {% include 'account/sidebar.html'%}
@@ -145,18 +74,18 @@
                   </a>
         {% endif %}
         </h1>
-        <!-- Author -->
-        <p class="lead">
-          by
-          <a href="#">{{ post.author }}</a>
-        </p>
-
-        <hr>
-
-        <!-- Date/Time -->
-        <p>Published {{ post.publish }}</p>
-
-        <hr>
+        <ul class="post-meta list-inline">
+                        <li class="list-inline-item">
+                            <i class="fa fa-user-circle-o"></i> <a href="#">{{ post.author }}</a>
+                        </li>
+                        <li class="list-inline-item">
+                            <i class="fa fa-calendar-o"></i> <a href="#">{{ post.publish }}</a>
+                        </li>
+                        <li class="list-inline-item">
+                            <i class="fa fa-tags"></i> <a href="#">Bootstrap4</a>
+                        </li>
+          </ul>
+          <hr>
 
         <!-- Preview Image -->
         <img class="img-fluid rounded kl" id="myImg" src="{{post.avatar.url}}" alt="">
@@ -527,8 +456,8 @@ span.onclick = function() {
 
 
 </script>
-{% comment %} <script src="{% static 'ckeditor/ckeditor/plugins/prism/lib/prism/prism_patched.min.js' %}"></script>  {% endcomment %}
-{% comment %} <link rel="stylesheet" href="{% static 'prism/prism.css' %}"> {% endcomment %}
+<script src="{% static 'ckeditor/ckeditor/plugins/prism/lib/prism/prism_patched.min.js' %}"></script> 
+<link rel="stylesheet" href="{% static 'prism/prism.css' %}">
 
 </div>
 {% endblock %}

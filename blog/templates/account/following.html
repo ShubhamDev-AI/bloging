@@ -1,20 +1,38 @@
 {% load thumbnail %}
-<ul>
+{% load static %}
+<link href="{% static "css/follow-block.css" %}" rel="stylesheet">
     {% for f in following %}
-    {% if f.first_name or f.last_name %}
-    <li><a href="{% url 'posts:user_detail' f.username %}">{{ f.first_name }} {{ f.last_name }}</a>
-    <img src="{% thumbnail f.profile.photo 180x180 %}" class="user-detail">
-    <a href="{% url 'posts:follower_remove' f.username %}" ><i class="fas fa-cross   "></i> remove</a>
-    
-
-
-
-    </li>
-    
+     {% if f.first_name or f.last_name %}
+      <section class="search-result-item">
+            <a class="image-link" href="#"><img class="image" src="{% thumbnail f.profile.photo 180x180 %}">
+            </a>
+            <div class="search-result-item-body">
+                <div class="row">
+                    <div class="col-sm-9">
+                        <h4 class="search-result-item-heading"><a href="{% url 'posts:user_detail' f.username %}">{{ f.first_name }} {{ f.last_name }}</a></h4>
+                        <h4 class="info">@{{f.username}}</h4>
+                        <p class="description">{{user.profile.bio}}</p>
+                    </div>
+                    <div class="col-sm-3 text-align-center">
+                        <a href="{% url 'posts:follower_remove' f.username %}" ><i class="fas fa-cross  value3 mt-sm "></i> remove</a>
+                        <br>
+                        <a class=" follow btn btn-info btn-sm" href="{% url 'posts:user_follow' %}"
+                        data-id="{{ f.id }}" data-action="{% if f.username in f.following.all %}un{% endif %}follow">
+                        {% if f.username not in f.following.all %}
+                                  Follow
+                        {% else %}
+                                  Unfollow
+                        {% endif %}
+                        
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>  
     {% else %}
-    <li><a href="{% url 'posts:user_detail' f.username %}">{{ f.username }}</a>
+    <a href="{% url 'posts:user_detail' f.username %}">{{ f.username }}</a>
     <img src="{% thumbnail f.profile.photo 180x180 %}" class="user-detail">
-    </li>
+ 
     {% endif %}
     {% endfor %}
-</ul>
+

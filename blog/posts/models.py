@@ -803,32 +803,8 @@ class Block(models.Model):
             raise ValidationError("Users cannot block themselves.")
         super(Block, self).save(*args, **kwargs)
 
-# class Visitor(models.Model):
-#     post = models.ForeignKey(Post, on_delete=models.CASCADE,related_name='post_visitor')
-#     ip = models.CharField(max_length=40)
-#     created = models.DateTimeField(auto_now_add=True)
-#     modified = models.DateTimeField(auto_now=True)
-
-#     def __str__(self):
-#         return self.post.title
-
-#     class Meta:
-#         verbose_name = 'Detail Visitor'
-#         verbose_name_plural = 'Visitors'
-#         ordering = ['-created']
 class DefaultManager(models.Manager):
-    """
-    Class to assign as ORM queryset manager,
-    for example usage:
-
-    class ModelName(models.Model):
-        ...
-        objects = DefaultManager()
-
-    >>> ModelName.objects.published()
-    >>> ModelName.objects.deleted()
-    """
-
+    
     def published(self):
         """ return queryset for not-deleted objects only. """
         return self.filter(deleted_at__isnull=True)
