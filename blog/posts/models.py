@@ -240,6 +240,10 @@ class Comment(MPTTModel):
 
     def __str__(self):
         return self.body[:20]
+    
+    def get_absolute_url(self):
+        return reverse('posts:post_list')
+
 
 # watch later and history
 class Watchlater(models.Model):

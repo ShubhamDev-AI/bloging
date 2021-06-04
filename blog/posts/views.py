@@ -591,6 +591,19 @@ def post_comment(request, post_id, parent_comment_id=None):
     else:
         return HttpResponse("Only GET/POST requests are accepted.")
 
+# comment update
+@method_decorator(login_required, name='dispatch') 
+class CommentUpdateView(UpdateView):
+    model = Comment
+    fields = ['body']
+    template_name = 'account/update_comment.html'
+
+# comment delete
+@method_decorator(login_required, name='dispatch')
+class CommentDeleteView(DeleteView):
+	model = Comment
+	success_url = '/posts'
+
 # like 
 class IncreaseLikesView(View):
     def post(self, request, *args, **kwargs):

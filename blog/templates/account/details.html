@@ -218,7 +218,18 @@
             <strong style="color: pink">{{ comment.reply_to }}</strong> 
         {% endif %}
     </p>
-    <div>{{ comment.body|safe }}</div>
+      <div>   
+          {{ comment.body|safe }}
+          {% comment %}  protect data from other users {% endcomment %}
+          {% if request.user == comment.user %} 
+              <a href="{% url 'posts:edit-comment' comment.id %}">Edit</a>
+              <form method="post" action="{% url 'posts:delete-comment' comment.id %}">
+                  {% csrf_token %}
+                  <button class="btn btn-danger" type="submit">Delete</button>
+              </form>
+          {% endif %}
+    
+      </div>
     <div>
       <span style="color: gray">{{ comment.created|date:"Y-m-d H:i" }}</span>
       <!-- modal  -->

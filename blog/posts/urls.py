@@ -5,7 +5,7 @@ from django_filters.views import FilterView
 from django.views.generic import TemplateView
 from django.conf.urls import url
 from .filters import UserFilter
-from .views import UpdatePostView,DeletePostView,AddCategoryView,DetailPostView
+from .views import UpdatePostView,DeletePostView,AddCategoryView,DetailPostView,CommentUpdateView,CommentDeleteView
 from django.conf.urls import handler404,handler500
 
 app_name = 'posts'
@@ -33,6 +33,9 @@ urlpatterns = [
     path('user_activity/', views.user_activity, name='user_activity'),
     path('post-comment/<int:post_id>', views.post_comment, name='post_comment'),
     path('post-comment/<int:post_id>/<int:parent_comment_id>', views.post_comment, name='comment_reply'),
+    path('edit-comment/<int:pk>', CommentUpdateView.as_view(), name='edit-comment'),
+    path('delete-comment/<int:pk>', CommentDeleteView.as_view(), name='delete-comment'),
+
     path('increase-likes/<int:id>/', views.IncreaseLikesView.as_view(), name='increase_likes'),
     path('likes/<int:pk>/', views.LikeView, name='like_post'),
     path('dislikes/<int:pk>/',views.DisLikeView,name='dislike_post'),
