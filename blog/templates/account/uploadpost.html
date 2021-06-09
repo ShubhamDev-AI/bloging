@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load  static %}
 {% block title %}Upload Post{% endblock %}
 
 {% block content %}
@@ -7,8 +7,22 @@
       {% comment %} side bar {% endcomment %}
           {% include 'account/sidebar.html'%}
       {% comment %} end side bar {% endcomment %}
+      
       <div id="content" class="p-4 p-md-5 pt-5">
+      
         <h2>Add a new post</h2>
+        <button type="button" class="btn btn-primary js-create-book" data-url="{% url 'posts:post_create' %}">
+      <span class="glyphicon glyphicon-plus"></span>
+      New post
+    </button>
+        
+        <!-- THE MODAL WE WILL BE USING -->
+  <div class="modal fade" id="modal-book">
+    <div class="modal-dialog">
+      <div class="modal-content">
+      </div>
+    </div>
+    </div>
 
           <form method="post" enctype="multipart/form-data">
             {{ post_form.media }}
@@ -17,12 +31,70 @@
             <p><input type="submit" value="Add Post"></p>
           </form>
       </div>
-      <script>
-
-            var name = "{{ user.id }}";
-            document.getElementById("elder").value = name;
-      </script>
+      
 {% else %}
   <h1> Please Login...</h1>
 {% endif %}
+<script>
+$(function () {
+
+  /* Functions */
+
+  var loadForm = function () {
+    var btn = $(this);
+    $.ajax({
+      url: btn.attr("data-url"),
+      type: 'get',
+      dataType: 'json',
+      beforeSend: function () {
+        $("#modal-book .modal-content").html("");
+        $("#modal-book").modal("show");
+        
+      },
+      success: function (data) {
+        $("#modal-book .modal-content").html(data.html_form);
+      }
+    });
+  };
+
+  var saveForm = function () {
+    var form = $(this);
+    $.ajax({
+      url: form.attr("action"),
+      data: form.serialize(),
+      type: form.attr("method"),
+      dataType: 'json',
+      success: function (data) {
+            if (data.form_is_valid)
+            {
+              $("#book-table tbody").html(data.html_book_list);
+              $("#modal-book").modal("hide");
+              console.log(data)
+            }
+            else {
+                  $("#modal-book .modal-content").html(data.html_form);
+                }
+          },
+          error:function(data){
+              $("#book-table tbody").html(data.html_book_list);
+              $("#modal-book .modal-content").html(data.html_form);
+          }
+    });
+    return false;
+  };
+
+
+  /* Binding */
+
+  // Create book
+  $(".js-create-book").click(loadForm);
+  $("#modal-book").on("submit", ".js-book-create-form", saveForm);
+
+  
+});
+
+</script>
+<script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+
 {% endblock %}

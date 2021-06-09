@@ -30,11 +30,11 @@ class PostForm(forms.ModelForm):
         choice_list = []
         for item in choice:
             choice_list.append(item)
-        fields =('title','slug','author','avatar','body','category','status','tags')
+        fields =('title','avatar','body','category','status','tags')
         widgets = {
             'title':forms.TextInput(attrs={'class':'form-control'}),
-            'slug':forms.TextInput(attrs={'class':'form-control'}),
-            'author':forms.TextInput(attrs={'class':'form-control','value':'','id':'elder','type':'hidden'}),
+            # 'slug':forms.TextInput(attrs={'class':'form-control'}),
+            # 'author':forms.TextInput(attrs={'class':'form-control','value':'','id':'elder','type':'hidden'}),
             'avatar':forms.FileInput(attrs={'class':'form-control'}),
             # 'author': forms.Select(attrs={'class':'form-control'}),
             'body':forms.Textarea(attrs={'rows': 5, 'cols': 100}),

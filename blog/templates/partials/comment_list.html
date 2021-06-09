@@ -1,0 +1,61 @@
+{% load mptt_tags %}
+            <h4>Share {{ comments.count }} Comments</h4>       
+            <div class="media mb-4">
+              <div class="media-body">
+                <!-- Traverse the tree structure -->
+                    {% recursetree comments %}
+                        {% with comment=node %}
+                          <div class="{% if comment.reply_to %}offset-1 col-11
+                        {% else %}
+                          col-12
+                        {% endif %}">
+                    <hr>
+                    <p>
+                        <strong style="color: pink">{{ comment.user }}</strong> 
+                        <!-- Show respondent -->
+                        {% if comment.reply_to %}
+                          <i class="far fa-arrow-alt-circle-right" style="color: cornflowerblue;"></i>
+                            <strong style="color: pink">{{ comment.reply_to }}</strong> 
+                        {% endif %}
+                    </p>
+                    <div>   
+                        {{ comment.body|safe }}
+                        {% comment %}  protect data from other users {% endcomment %}
+                        {% if request.user == comment.user %} 
+                            <a href="{% url 'posts:edit-comment' comment.id %}">Edit</a>              
+                            {% comment %} <form method="post" action="{% url 'posts:delete-comment' comment.id %}">
+                                {% csrf_token %}
+                                <button class="btn btn-danger" type="submit">Delete</button>
+                            </form> {% endcomment %}
+                            <button class="btn btn-danger form-control" onClick="deleteComment({{comment.id}})">DELETE</button>
+                        {% endif %}
+        
+                    </div>
+                    <div>
+                          <span style="color: gray">{{ comment.created|date:"Y-m-d H:i" }}</span>
+                          <!-- modal  -->
+                        <button type="button"class="btn btn-light btn-sm text-muted" 
+                            onclick="load_modal({{ post.id }}, {{ comment.id }})">
+                            Reply
+                        </button>
+                    </div>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="comment_{{ comment.id }}" tabindex="-1" role="dialog" 
+                      aria-labelledby="CommentModalCenter"aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                            <div class="modal-content" style="height: 480px">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalCenterTitle">Reply {{ comment.user }}：</h5>
+                                </div>
+                                <div class="modal-body" id="modal_body_{{ comment.id }}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if not comment.is_leaf_node %}
+                    <div class="children">{{ children }}</div>
+                    {% endif %}
+              </div>
+              {% endwith %}
+              {% endrecursetree %}

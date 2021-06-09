@@ -35,6 +35,7 @@ urlpatterns = [
     path('post-comment/<int:post_id>/<int:parent_comment_id>', views.post_comment, name='comment_reply'),
     path('edit-comment/<int:pk>', CommentUpdateView.as_view(), name='edit-comment'),
     path('delete-comment/<int:pk>', CommentDeleteView.as_view(), name='delete-comment'),
+    path('ajax/crud/delete/',  views.DeleteComment.as_view(), name='crud_ajax_delete'),
 
     path('increase-likes/<int:id>/', views.IncreaseLikesView.as_view(), name='increase_likes'),
     path('likes/<int:pk>/', views.LikeView, name='like_post'),
@@ -81,6 +82,9 @@ urlpatterns = [
     url(r'^ajax_calls/search/', views.autocompleteModel,name="ajax_autocomplete"),
     # ajax
     path('posts_list/', views.post_listss, name='post_lists'),
+
+    url(r'^posts/create/$', views.post_create, name='post_create'),
+
 
 
 

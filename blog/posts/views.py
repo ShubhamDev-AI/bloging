@@ -488,6 +488,42 @@ def post_upload(request):
         form = PostForm()
     return render(request,'account/uploadpost.html',{'post_form':form})
 
+from django.views.decorators.csrf import csrf_exempt
+from django.forms.models import model_to_dict
+from django.template.loader import render_to_string
+
+def post_create(request):
+    data = dict()
+
+    if request.method == 'POST':
+        form = PostForm(request.POST or None,request.FILES or None)
+        # match =form.data['title'] and Post.objects.check(title=match) == False
+        if form.is_valid() :
+            print(form.data['title']) 
+            
+            instance = form.save(commit=False)
+            instance.author = request.user
+            instance.slug = instance.title
+            instance.save()
+            data['form_is_valid'] = True
+            data['html_form'] = render_to_string('partials/post_create.html')
+            return JsonResponse(data)
+
+        else:
+            data['form_is_valid'] = False
+            # data['html_form'] = render_to_string('partials/post_create.html')
+            # return JsonResponse(data)
+
+    else:
+        form = PostForm()
+
+    context = {'form': form}
+    data['html_form'] = render_to_string('partials/post_create.html',
+        context,
+        request=request
+    )
+    return JsonResponse(data)
+
 @method_decorator(login_required, name='dispatch')
 class UpdatePostView(UpdateView):
     model = Post
@@ -604,6 +640,14 @@ class CommentDeleteView(DeleteView):
 	model = Comment
 	success_url = '/posts'
 
+class DeleteComment(View):
+    def  get(self, request):
+        id1 = request.GET.get('id', None)
+        Comment.objects.get(id=id1).delete()
+        data = {
+            'deleted': True
+        }
+        return JsonResponse(data)
 # like 
 class IncreaseLikesView(View):
     def post(self, request, *args, **kwargs):

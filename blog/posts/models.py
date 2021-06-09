@@ -116,7 +116,7 @@ class Post(models.Model,ContentTypeModel):
     author = models.ForeignKey(User,
                               on_delete=models.CASCADE,
                               related_name='blog_posts')
-    avatar = models.FileField(upload_to='media/%Y%m%d/', blank=True)
+    avatar = models.FileField(default='avatar.png',upload_to='media/%Y%m%d/', blank=True)
     body = RichTextField(blank=True ,null=True)
     publish = models.DateTimeField(default=timezone.now)
     created = models.DateTimeField(auto_now_add=True)

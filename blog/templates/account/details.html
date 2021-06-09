@@ -6,6 +6,7 @@
 {% block content %}
 {% if message%}
 <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+
 <script>
     Swal.fire({
         position: 'top-end',
@@ -166,11 +167,11 @@
                 </div>
             </div>
 
-        <!-- Comments Form -->
+<!--........................................ Comments Form -->
         {% if user.is_authenticated %}
-        <div class="card my-4">
-          <h5 class="card-header">Leave a Comment:</h5>
-          <div class="card-body">
+          <div class="card my-4">
+                <h5 class="card-header">Leave a Comment:</h5>
+                <div class="card-body">
                     <form action="{% url 'posts:post_comment' post.id %}" method="POST">
                          {{ post_form.media }}
                          {% csrf_token %}
@@ -178,93 +179,29 @@
                             <label for="body">
                             </label>
                             <br>
-                        <div>
+                          <div>
                                 {{ comment_form.media }}
                                 {{ comment_form.body }}
-                        </div>
+                          </div>
                         </div>
                         <!-- Submit button -->
                         <button type="submit" class="btn btn-primary ">send</button>                    
                     </form>
-          </div>
-        </div>
-        {% else %}
-        <br>
-        <h5 class="row justify-content-center">
-               please<a href="{% url 'account:login' %}">log in</a>Reply later
-        </h5><br>
-        {% endif %}
-
-        <!-- Single Comment -->
-    <!-- Show comments -->
-   {% load mptt_tags %}
-   <h4>Share {{ comments.count }} Comments</h4>
-        
-        <div class="media mb-4">
-          <div class="media-body">
-                                    <!-- Traverse the tree structure -->
-     {% recursetree comments %}
-        {% with comment=node %}
-          <div class="{% if comment.reply_to %}offset-1 col-11
-        {% else %}
-           col-12
-        {% endif %}">
-    <hr>
-    <p>
-     <strong style="color: pink">{{ comment.user }}</strong> 
-        <!-- Show respondent -->
-        {% if comment.reply_to %}
-          <i class="far fa-arrow-alt-circle-right" style="color: cornflowerblue;"></i>
-            <strong style="color: pink">{{ comment.reply_to }}</strong> 
-        {% endif %}
-    </p>
-      <div>   
-          {{ comment.body|safe }}
-          {% comment %}  protect data from other users {% endcomment %}
-          {% if request.user == comment.user %} 
-              <a href="{% url 'posts:edit-comment' comment.id %}">Edit</a>
-              <form method="post" action="{% url 'posts:delete-comment' comment.id %}">
-                  {% csrf_token %}
-                  <button class="btn btn-danger" type="submit">Delete</button>
-              </form>
-          {% endif %}
-    
-      </div>
-    <div>
-      <span style="color: gray">{{ comment.created|date:"Y-m-d H:i" }}</span>
-      <!-- modal  -->
-     <button type="button"class="btn btn-light btn-sm text-muted" 
-        onclick="load_modal({{ post.id }}, {{ comment.id }})">
-         Reply
-     </button>
-    </div>
-
-    <!-- Modal -->
-    <div class="modal fade" id="comment_{{ comment.id }}" tabindex="-1" role="dialog" 
-       aria-labelledby="CommentModalCenter"aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div class="modal-content" style="height: 480px">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalCenterTitle">Reply {{ comment.user }}：</h5>
-                </div>
-                <div class="modal-body" id="modal_body_{{ comment.id }}"></div>
+                 </div>
             </div>
-        </div>
-    </div>
+        {% else %}
+          <br>
+          <h5 class="row justify-content-center">
+               please<a href="{% url 'account:login' %}">log in</a>Reply later
+          </h5><br>
+        {% endif %}
+<!--end comment form ................................................................... -->
 
-    {% if not comment.is_leaf_node %}
-     <div class="children">{{ children }}</div>
-    {% endif %}
-    </div>
-    {% endwith %}
-    {% endrecursetree %}
+<!--........................................... Show comments ............................-->
+{% include 'partials/comment_list.html'%}
 
-            
-
-            
-
-          </div>
-        </div>
+                    </div>
+      </div>
 
       </div>
 
@@ -364,6 +301,24 @@
 </div>  
 </div>
 <script>
+// Delete Django Ajax Call
+function deleteComment(id) {
+  var action = confirm("Are you sure you want to delete this comment?");
+  if (action != false) {
+    $.ajax({
+        url: '{% url "posts:crud_ajax_delete" %}',
+        data: {
+            'id': id,
+        },
+        dataType: 'json',
+        success: function (data) {
+            if (data.deleted) {
+              $("#userTable #comment-" + id).remove();
+            }
+        }
+    });
+  }
+}
 
 {% comment %} likes---------------- {% endcomment %}
 function validate_is_like(url, id, likes) {

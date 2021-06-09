@@ -172,7 +172,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'blog/static')
 ]
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'blog')
+MEDIA_ROOT = os.path.join((BASE_DIR), 'media')
 
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'
