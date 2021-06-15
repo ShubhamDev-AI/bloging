@@ -123,7 +123,7 @@ $(function() {
               {% if user.id == 1 %}
                 <a href="{% url 'posts:add-category'%}" class="nav-item nav-link">Add Category</a>
               {% endif %}
-                 <a href="{% url 'posts:post-upload'%}" class="nav-item nav-link">upload Post</a>
+                 <a href="{% url 'posts:post_create'%}" class="nav-item nav-link">upload Post</a>
 
             {% endif %}
             </div>

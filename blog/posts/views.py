@@ -430,6 +430,82 @@ def post_detail(request, id):
                    'disliked':disliked  
                    })
 
+import json
+
+@login_required
+def post_details_ajax(request, pk):
+    post = Post.objects.get(pk=pk)
+    form = PostForm()
+    comments = Comment.objects.filter(post=pk)
+    comment_form = CommentForm()
+    # List of similar posts
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.published.filter(tags__in=post_tags_ids)\
+                                  .exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags'))\
+                                .order_by('-same_tags','-publish')[:4]
+
+    pre_article = Post.objects.filter(id__lt=post.id).order_by('-id')
+    next_article = Post.objects.filter(id__gt=post.id).order_by('id')
+    if pre_article.count() > 0:
+        pre_article = pre_article[0]
+    else:
+        pre_article = None
+
+    if next_article.count() > 0:
+        next_article = next_article[0]
+    else:
+        next_article = None
+
+    context = {
+        'pre_article': pre_article,
+        'similar_posts': similar_posts,
+        'next_article': next_article,
+        'post': post,
+        'form': form,
+        'comment_form': comment_form,
+        'comments': comments,
+    }
+
+    return render(request, 'account/atail_post.html', context)
+
+def getPostInfo(request,pk):
+    if request.method == "GET" and request.is_ajax():
+        try:
+            obj = Post.objects.get(pk=pk)
+        except:
+            return JsonResponse({"success":False}, status=400)
+        data = {
+            'id': obj.id,
+            'title': obj.title,
+            'body': obj.body,
+            'author': obj.author.username,
+            'like': True if request.user in obj.like.all() else False,
+            'likes_count': obj.total_likes(),
+            'avatar': json.dumps(str(obj.avatar)),
+            'publish':obj.publish,
+            'logged_in': request.user.username,
+        }
+        return JsonResponse({"post_info":data}, status=200)
+    return JsonResponse({"success":False}, status=400)
+   
+
+@login_required
+def like_unlike_post(request):
+    if request.is_ajax():
+        print('view',request.POST.get('like_pk'))
+        pk = request.POST.get('like_pk')
+        obj = Post.objects.get(pk=pk)
+        if request.user in obj.like.all():
+            like = False
+            obj.like.remove(request.user)
+        else:
+            like = True
+            obj.like.add(request.user)
+        return JsonResponse({'like': like, 'count': obj.total_likes()})
+    return redirect('posts:post_detail')
+
+
 @login_required()
 def post_share(request, post_id):
     # Retrieve post by id
@@ -482,7 +558,12 @@ def post_upload(request):
             title =form.data['title']
             # avatar = form.data['avatar']
             # print(avatar)
-            form.save()
+            instance = form.save(commit=False)
+            instance.author=request.user
+            instance.slug=instance.title
+            instance.save()
+            form.save_m2m()
+
             return render(request,'account/uploadsuccess.html',{'title':title})
     else:
         form = PostForm()
@@ -493,36 +574,37 @@ from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 
 def post_create(request):
-    data = dict()
-
-    if request.method == 'POST':
-        form = PostForm(request.POST or None,request.FILES or None)
-        # match =form.data['title'] and Post.objects.check(title=match) == False
+    form = PostForm(request.POST or None,request.FILES or None)
+    if request.is_ajax():
         if form.is_valid() :
+            print('body',form.data['tags']) 
             print(form.data['title']) 
+
             
             instance = form.save(commit=False)
             instance.author = request.user
-            instance.slug = instance.title
+            instance.slug = instance.title            
             instance.save()
-            data['form_is_valid'] = True
-            data['html_form'] = render_to_string('partials/post_create.html')
-            return JsonResponse(data)
+            form.save_m2m()
 
+
+            return JsonResponse({'error': False, 'message': 'Uploaded Successfully'})
         else:
-            data['form_is_valid'] = False
-            # data['html_form'] = render_to_string('partials/post_create.html')
-            # return JsonResponse(data)
+            return JsonResponse({'error': True, 'errors': form.errors})
 
-    else:
-        form = PostForm()
+            
+    context = {
+        'form': form,
+    }
 
-    context = {'form': form}
-    data['html_form'] = render_to_string('partials/post_create.html',
-        context,
-        request=request
-    )
-    return JsonResponse(data)
+    return render(request, 'account/uploadpost.html', context)
+
+@method_decorator(login_required, name='dispatch')
+class CreatePostView(CreateView):
+    model = Post
+    template_name = 'account/uploadpost.html'
+    fields = ['title','avatar','body','status','tags']
+
 
 @method_decorator(login_required, name='dispatch')
 class UpdatePostView(UpdateView):
@@ -567,6 +649,9 @@ def PoliticsView(request):
 # comments 
 @login_required () 
 def post_comment(request, post_id, parent_comment_id=None):
+    print('request',request)
+    print('post_id',post_id)
+    print('parent_comment_id',parent_comment_id)
     post = get_object_or_404(Post, id=post_id)
 
     # Process POST request
@@ -1096,25 +1181,13 @@ def post_listss(request):
     # 需要传递给模板（templates）的对象
     return render(request, 'account/ajax_post_list.html', {'posts': posts})
 
-# from django.template.loader import render_to_string
+class PostTitleValidationView(View):
+    def post(self, request):
+        data = json.loads(request.body)
+        title = data['title']
+        if not str(title).isalnum():
+            return JsonResponse({'title_error': 'title should only contain alphanumeric characters'}, status=400)
+        if Post.objects.filter(title=title).exists():
+            return JsonResponse({'title_error': 'sorry title in use,choose another one '}, status=409)
+        return JsonResponse({'title_valid': True})
 
-# def post_create(request):
-#     data = dict()
-
-#     if request.method == 'POST':
-#         form = Form(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             data['form_is_valid'] = True
-#         else:
-#             data['form_is_valid'] = False
-#     else:
-#         form = PostForm()
-
-#     context = {'form': form}
-#     print('kkkkkkkkk',context)
-#     data['html_form'] = render_to_string('account/ajax_partial_post_create.html',
-#     context,
-#     request=request
-#     )
-#     return JsonResponse(data)

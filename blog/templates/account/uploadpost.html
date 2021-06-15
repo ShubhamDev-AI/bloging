@@ -1,97 +1,106 @@
 {% extends "base.html" %}
+{% load widget_tweaks %}
+
 {% load  static %}
 {% block title %}Upload Post{% endblock %}
 
 {% block content %}
 {% if user.is_authenticated %}
-    
+      {% comment %} side bar {% endcomment %}
+          {% include 'account/sidebar.html'%}
+      {% comment %} end side bar {% endcomment %}
+      
       <div id="content" class="p-4 p-md-5 pt-5">
       
-        <h2>Add a new post</h2>
-        <button type="button" class="btn btn-primary js-create-book" data-url="{% url 'posts:post_create' %}">
-      <span class="glyphicon glyphicon-plus"></span>
-      New post
-    </button>
-        
-        <!-- THE MODAL WE WILL BE USING -->
-  <div class="modal fade" id="modal-book">
-    <div class="modal-dialog">
-      <div class="modal-content">
-      </div>
-    </div>
-    </div>
-
-          <form method="post" enctype="multipart/form-data">
-            {{ post_form.media }}
-            {{ post_form.as_p }}
-            {% csrf_token %}
-            <p><input type="submit" value="Add Post"></p>
-          </form>
-      </div>
-      
-{% else %}
+        <h2>Add a new post</h2> 
+        <div class="invalid_feedback invalid-feedback" style="display:none">
+        </div>
+         <p class="text-sm text-success titleSuccessOutput"></p>
+     
+                    <form enctype="multipart/form-data"id="id_ajax_upload_form" method="POST"novalidate="">
+                        {% csrf_token %}
+                        {{form.media}}
+                         {{ form.as_p }}
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger add-modal-close" data-bs-dismiss="modal">close</button>
+                            <button type="submit" id="add-btn" class="btn btn-success submit_btn">+ add</button>
+                        </div>
+                    </form>
+        </div>
+  {% else %}
   <h1> Please Login...</h1>
 {% endif %}
+
 <script>
-$(function () {
+const titleField = document.querySelector("#id_title");
+const feedBackArea = document.querySelector(".invalid_feedback");
+const titleSuccessOutput = document.querySelector(".titleSuccessOutput");
+const submitBtn = document.querySelector(".submit_btn");
+titleField.addEventListener("keyup", (e) => {
+            const titleVal = e.target.value;
 
-  
+            titleSuccessOutput.style.display = "block";
 
-  var loadForm = function () {
-    var btn = $(this);
-    $.ajax({
-      url: btn.attr("data-url"),
-      type: 'get',
-      dataType: 'json',
-      beforeSend: function () {
-        $("#modal-book .modal-content").html("");
-        $("#modal-book").modal("show");
-        
-      },
-      success: function (data) {
-        $("#modal-book .modal-content").html(data.html_form);
-      }
-    });
-  };
+            titleSuccessOutput.textContent = `Checking  ${titleVal}`;
 
-  var saveForm = function () {
-    var form = $(this);
-    $.ajax({
-      url: form.attr("action"),
-      data: form.serialize(),
-      type: form.attr("method"),
-      dataType: 'json',
-      success: function (data) {
-            if (data.form_is_valid)
-            {
-              $("#book-table tbody").html(data.html_book_list);
-              $("#modal-book").modal("hide");
-              console.log(data)
+            titleField.classList.remove("is-invalid");
+            feedBackArea.style.display = "none";
+
+            if (titleVal.length > 0) {
+                fetch("/posts/validate-post", {
+                body: JSON.stringify({ title: titleVal }),
+                method: "POST",
+                })
+                .then((res) => res.json())
+                .then((data) => {
+                    titleSuccessOutput.style.display = "none";
+                    if (data.title_error) {
+                    titleField.classList.add("is-invalid");
+                    feedBackArea.style.display = "block";
+                    feedBackArea.innerHTML = `<p>${data.title_error}</p>`;
+                    submitBtn.disabled = true;
+                    } else {
+                    submitBtn.removeAttribute("disabled");
+                    }
+                });
             }
-            else {
-                  $("#modal-book .modal-content").html(data.html_form);
+            });
+
+$('#id_ajax_upload_form').submit(function(e){
+        e.preventDefault();
+        $form = $(this)
+        var formData = new FormData(this);
+        var content = CKEDITOR.instances['id_body'].getData(); 
+        formData.append('body',content)
+        $.ajax({
+            url: window.location.pathname,
+            type: 'POST',
+            data: formData,
+            success: function (response) {
+                $('.error').remove();
+                console.log(response)
+                if(response.error){
+                    $.each(response.errors, function(name, error){
+                        error = '<small class="text-muted error">' + error + '</small>'
+                        $form.find('[name=' + name + ']').after(error);
+                    })
                 }
-          },
-          error:function(data){
-              $("#book-table tbody").html(data.html_book_list);
-              $("#modal-book .modal-content").html(data.html_form);
-          }
+                else{
+                    $form[0].reset();
+                    alert(response.message)
+                }
+            },
+            cache: false,
+            contentType: false,
+            processData: false
+        });
     });
-    return false;
-  };
-
-
-  /* Binding */
-
-  // Create book
-  $(".js-create-book").click(loadForm);
-  $("#modal-book").on("submit", ".js-book-create-form", saveForm);
-
-  
-});
 
 </script>
 <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
 <script src="{% static 'js/bootstrap.min.js' %}"></script>
 
 {% endblock %}
+
+
+

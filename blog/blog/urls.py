@@ -22,6 +22,9 @@ handler500 = 'posts.views.handler500'
 
 
 urlpatterns = [
+    path('jet/', include('jet.urls', 'jet')),
+    path('jet/dashboard/', include('jet.dashboard.urls', 'jet-dashboard')),  # Django JET dashboard URLS
+
     path('admin/', admin.site.urls),
     path('account/', include('account.urls')),
     path('posts/', include('posts.urls')),
@@ -35,8 +38,6 @@ urlpatterns = [
     path('__debug__/', include(debug_toolbar.urls)),
 
 
-]
-if settings.DEBUG:
-     urlpatterns += static(settings.MEDIA_URL,
+] +static(settings.MEDIA_URL,
  document_root=settings.MEDIA_ROOT)
 

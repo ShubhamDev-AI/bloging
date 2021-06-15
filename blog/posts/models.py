@@ -125,7 +125,7 @@ class Post(models.Model,ContentTypeModel):
                               choices=STATUS_CHOICES,
                               default='draft')
     likes = models.PositiveIntegerField(default=0)
-    like = models.ManyToManyField(User,related_name='blog_post')
+    like = models.ManyToManyField(User,blank=True)
     dislike = models.ManyToManyField(User,related_name='blog_post_dislike')    
     total_views =models.PositiveIntegerField(default=0)
     user_total_views =models.PositiveIntegerField(default=0)
@@ -169,7 +169,6 @@ class Post(models.Model,ContentTypeModel):
             return True
         else:
             return False
-
     def total_likes(self):
         return self.like.count()
 

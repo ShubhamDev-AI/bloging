@@ -1,6 +1,6 @@
 {% load widget_tweaks %}
 
-<form method="post" action="{% url 'posts:post_create' %}" class="js-book-create-form" enctype="multipart/form-data">  
+<form method="POST" action="{% url 'posts:post_create' %}" class="js-book-create-form" enctype="multipart/form-data" id="post-form">  
 
           {{ post_form.media }}
           {% csrf_token %}

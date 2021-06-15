@@ -5,23 +5,31 @@ from django_filters.views import FilterView
 from django.views.generic import TemplateView
 from django.conf.urls import url
 from .filters import UserFilter
-from .views import UpdatePostView,DeletePostView,AddCategoryView,DetailPostView,CommentUpdateView,CommentDeleteView
+from .views import UpdatePostView,DeletePostView,AddCategoryView,DetailPostView,CommentUpdateView,CommentDeleteView,PostTitleValidationView
 from django.conf.urls import handler404,handler500
+from django.views.decorators.csrf import csrf_exempt
+
 
 app_name = 'posts'
 
 urlpatterns = [
     
     path('', views.post_list, name='post_list'),
+    path('like-unlike/', views.like_unlike_post, name='like-unlike'),
+
     url('details/(?P<pk>\d+)/$', DetailPostView.as_view(), name='post_detail'),
+    path('post-info/<pk>/', views.post_details_ajax, name='post-detail'),
+
+    path('post-info/<pk>/data/', views.getPostInfo, name='post-detail-data'),
+
+    path('post-uploading/',views.post_upload,name='post-upload'),
+
     path('<int:post_id>/share/', views.post_share, name='post_share'),
     path('feed/', LatestPostsFeed(), name='post_feed'),
     path('search/', views.post_search, name='post_search'),
     path('searchuser/', views.search, name='search'),
     url(r'^searching/$', FilterView.as_view(filterset_class=UserFilter,
         template_name='posts/post/user_filter.html'), name='searching'),
-
-    path('post-upload/', views.post_upload, name='post-upload'),
     path('<int:pk>/update/',UpdatePostView.as_view(),name='update_post'),
     path('<int:pk>/delete/',DeletePostView.as_view(),name='delete_post'),
     path('add_category/',AddCategoryView.as_view(),name='add-category'),
@@ -83,7 +91,9 @@ urlpatterns = [
     # ajax
     path('posts_list/', views.post_listss, name='post_lists'),
 
-    url(r'^posts/create/$', views.post_create, name='post_create'),
+    path('post-upload/', views.post_create, name='post_create'),
+    path('validate-post', csrf_exempt(PostTitleValidationView.as_view()),
+         name="validate-post"),
 
 
 
@@ -93,3 +103,4 @@ urlpatterns = [
 ]
 handler404 = views.handler404
 handler500 = views.handler500
+

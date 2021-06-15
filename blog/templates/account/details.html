@@ -65,6 +65,9 @@
             <i class="material-icons"></i> 
            </button>
         </form>
+        <div class="col-2">
+               
+         </div>
         
         {% if user.id == post.author.id %}
                   <a href="{% url 'posts:update_post' post.pk %}" class="edit sav-edit" title="" data-toggle="tooltip" data-original-title="Edit">
@@ -83,7 +86,7 @@
                             <i class="fa fa-calendar-o"></i> <a href="#">{{ post.publish }}</a>
                         </li>
                         <li class="list-inline-item">
-                            <i class="fa fa-tags"></i> <a href="#">Bootstrap4</a>
+                            <i class="fa fa-tags" id="post_like"></i>                            
                         </li>
           </ul>
           <hr>
@@ -301,6 +304,32 @@
 </div>  
 </div>
 <script>
+const likeUnlikePosts = ()=> {
+    const likeUnlikeForms = [...document.getElementsByClassName('like-unlike-forms')]
+    likeUnlikeForms.forEach(form=> form.addEventListener('submit', e=>{
+        e.preventDefault()
+        const clickedId = e.target.getAttribute('data-form-id')
+        const clickedBtn = document.getElementById(`like-unlike-${clickedId}`)
+
+        $.ajax({
+            type: 'POST',
+            url: "/posts/like-unlike/",
+            data: {
+                'csrfmiddlewaretoken': csrftoken,
+                'pk': clickedId,
+            },
+            success: function(response){
+                console.log(response)
+                clickedBtn.textContent = response.like ? `Unlike (${response.count})`: `Like (${response.count})`
+            },
+            error: function(error){
+                console.log(error)
+            }
+        })
+
+    }))
+}
+
 // Delete Django Ajax Call
 function deleteComment(id) {
   var action = confirm("Are you sure you want to delete this comment?");

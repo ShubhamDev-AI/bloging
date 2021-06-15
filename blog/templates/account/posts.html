@@ -152,7 +152,7 @@
         <div class="card mb-4">
           {% for article in articles %}
             {% if article.avatar %}
-                <a href="{% url   'posts:post_detail' article.id %}">
+                <a href="{% url   'posts:post-detail' article.id %}">
                 <img class="card-img-top" src="{{ article.avatar.url }}" alt="Card image cap">
                 </a>
             {% else %}
